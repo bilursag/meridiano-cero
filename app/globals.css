@@ -1,26 +1,205 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-background: oklch(0.985 0.001 286);
+  --color-foreground: oklch(0.141 0.005 285.823);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.141 0.005 285.823);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.141 0.005 285.823);
+  --color-primary: oklch(0.21 0.006 285.885);
+  --color-primary-foreground: oklch(0.985 0 0);
+  --color-secondary: oklch(0.967 0.001 286.375);
+  --color-secondary-foreground: oklch(0.21 0.006 285.885);
+  --color-muted: oklch(0.967 0.001 286.375);
+  --color-muted-foreground: oklch(0.552 0.016 285.938);
+  --color-accent: oklch(0.967 0.001 286.375);
+  --color-accent-foreground: oklch(0.21 0.006 285.885);
+  --color-destructive: oklch(0.577 0.245 27.325);
+  --color-destructive-foreground: oklch(0.985 0 0);
+  --color-border: oklch(0.92 0.004 286.32);
+  --color-input: oklch(0.92 0.004 286.32);
+  --color-ring: oklch(0.705 0.015 286.067);
+  --radius: 0.5rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Dark mode overrides — unlayered so they beat @layer theme */
+.dark {
+  --color-background: oklch(0.145 0 0);
+  --color-foreground: oklch(0.985 0 0);
+  --color-card: oklch(0.185 0 0);
+  --color-card-foreground: oklch(0.985 0 0);
+  --color-popover: oklch(0.185 0 0);
+  --color-popover-foreground: oklch(0.985 0 0);
+  --color-primary: oklch(0.922 0 0);
+  --color-primary-foreground: oklch(0.185 0 0);
+  --color-secondary: oklch(0.255 0 0);
+  --color-secondary-foreground: oklch(0.985 0 0);
+  --color-muted: oklch(0.255 0 0);
+  --color-muted-foreground: oklch(0.65 0 0);
+  --color-accent: oklch(0.255 0 0);
+  --color-accent-foreground: oklch(0.985 0 0);
+  --color-destructive: oklch(0.7 0.19 22);
+  --color-destructive-foreground: oklch(0.985 0 0);
+  --color-border: oklch(0.22 0 0);
+  --color-input: oklch(0.22 0 0);
+  --color-ring: oklch(0.55 0 0);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Semantic chip utilities (status badges, announcement type badges) ─── */
+
+@utility chip-amber {
+  background-color: var(--color-amber-50);
+  color: var(--color-amber-800);
+}
+.dark .chip-amber {
+  background-color: color-mix(in oklab, var(--color-amber-950) 40%, transparent);
+  color: var(--color-amber-300);
+}
+
+@utility chip-blue {
+  background-color: var(--color-blue-50);
+  color: var(--color-blue-800);
+}
+.dark .chip-blue {
+  background-color: color-mix(in oklab, var(--color-blue-950) 40%, transparent);
+  color: var(--color-blue-300);
+}
+
+@utility chip-green {
+  background-color: var(--color-green-50);
+  color: var(--color-green-800);
+}
+.dark .chip-green {
+  background-color: color-mix(in oklab, var(--color-green-950) 40%, transparent);
+  color: var(--color-green-300);
+}
+
+@utility chip-red {
+  background-color: var(--color-red-50);
+  color: var(--color-red-800);
+}
+.dark .chip-red {
+  background-color: color-mix(in oklab, var(--color-red-950) 40%, transparent);
+  color: var(--color-red-300);
+}
+
+@utility chip-emerald {
+  background-color: var(--color-emerald-100);
+  color: var(--color-emerald-700);
+}
+.dark .chip-emerald {
+  background-color: color-mix(in oklab, var(--color-emerald-950) 40%, transparent);
+  color: var(--color-emerald-300);
+}
+
+@utility chip-slate {
+  background-color: var(--color-slate-100);
+  color: var(--color-slate-600);
+}
+.dark .chip-slate {
+  background-color: color-mix(in oklab, var(--color-slate-800) 60%, transparent);
+  color: var(--color-slate-400);
+}
+
+/* ── Announcement type badge (outline variant with border) ─────────────── */
+
+@utility type-badge-info {
+  background-color: var(--color-blue-100);
+  color: var(--color-blue-700);
+  border-color: var(--color-blue-200);
+}
+.dark .type-badge-info {
+  background-color: color-mix(in oklab, var(--color-blue-950) 40%, transparent);
+  color: var(--color-blue-300);
+  border-color: var(--color-blue-900);
+}
+
+@utility type-badge-alerta {
+  background-color: var(--color-amber-100);
+  color: var(--color-amber-700);
+  border-color: var(--color-amber-200);
+}
+.dark .type-badge-alerta {
+  background-color: color-mix(in oklab, var(--color-amber-950) 40%, transparent);
+  color: var(--color-amber-300);
+  border-color: var(--color-amber-900);
+}
+
+@utility type-badge-logro {
+  background-color: var(--color-emerald-100);
+  color: var(--color-emerald-700);
+  border-color: var(--color-emerald-200);
+}
+.dark .type-badge-logro {
+  background-color: color-mix(in oklab, var(--color-emerald-950) 40%, transparent);
+  color: var(--color-emerald-300);
+  border-color: var(--color-emerald-900);
+}
+
+/* ── Icon accent wrappers ──────────────────────────────────────────────── */
+
+@utility icon-blue {
+  background-color: var(--color-blue-100);
+  color: var(--color-blue-700);
+}
+.dark .icon-blue {
+  background-color: color-mix(in oklab, var(--color-blue-950) 40%, transparent);
+  color: var(--color-blue-400);
+}
+
+@utility icon-amber {
+  background-color: var(--color-amber-100);
+  color: var(--color-amber-700);
+}
+.dark .icon-amber {
+  background-color: color-mix(in oklab, var(--color-amber-950) 40%, transparent);
+  color: var(--color-amber-400);
+}
+
+/* ── Misc semantic colors ─────────────────────────────────────────────── */
+
+@utility text-success {
+  color: var(--color-emerald-600);
+}
+.dark .text-success {
+  color: var(--color-emerald-400);
+}
+
+@utility alert-success {
+  background-color: var(--color-emerald-50);
+  border-color: var(--color-emerald-200);
+}
+.dark .alert-success {
+  background-color: color-mix(in oklab, var(--color-emerald-950) 40%, transparent);
+  border-color: var(--color-emerald-900);
+}
+
+@utility alert-success-label {
+  color: var(--color-emerald-700);
+}
+.dark .alert-success-label {
+  color: var(--color-emerald-400);
+}
+
+@utility timeline-connector-done {
+  background-color: var(--color-emerald-200);
+}
+.dark .timeline-connector-done {
+  background-color: var(--color-emerald-900);
+}
+
+/* ── Leaflet popup overrides ───────────────────────────────────────────── */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
+}
+.leaflet-popup-tip {
+  display: none;
 }
