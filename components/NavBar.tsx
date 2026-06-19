@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useParams } from 'next/navigation'
+import { SignOutButton } from '@clerk/nextjs'
 import { MapPin, LogOut, Home, Map as MapIcon, CalendarDays, Bell } from 'lucide-react'
 import { useTripContext } from '@/lib/trip-context'
 import { Button } from '@/components/ui/button'
@@ -11,9 +12,9 @@ import { cn } from '@/lib/utils'
 
 const navItems = [
   { label: 'Inicio', suffix: '', Icon: Home },
-  { label: 'Mapa', suffix: '/mapa', Icon: MapIcon },
-  { label: 'Itinerario', suffix: '/itinerario', Icon: CalendarDays },
-  { label: 'Comunicados', suffix: '/comunicados', Icon: Bell },
+  { label: 'Mapa', suffix: '/map', Icon: MapIcon },
+  { label: 'Itinerario', suffix: '/itinerary', Icon: CalendarDays },
+  { label: 'Comunicados', suffix: '/announcements', Icon: Bell },
 ]
 
 export default function NavBar() {
@@ -21,11 +22,11 @@ export default function NavBar() {
   const params = useParams()
   const tripId = params?.tripId as string
   const { trip, unreadCount } = useTripContext()
-  const base = `/apoderado/${tripId}`
+  const base = `/parent/${tripId}`
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-      <div className="max-w-5xl mx-auto px-4 h-14 flex items-center gap-2">
+      <div className="max-w-5xl mx-auto px-4 h-16 flex items-center gap-2">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0 mr-1">
           <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
@@ -43,7 +44,7 @@ export default function NavBar() {
         </div>
 
         {/* Nav links */}
-        <nav className="flex items-center gap-0.5 ml-auto md:ml-4">
+        <nav className="flex items-center gap-0.5 ml-auto md:ml-4 overflow-x-auto">
           {navItems.map(({ label, suffix, Icon }) => {
             const href = `${base}${suffix}`
             const active = suffix === '' ? pathname === base : pathname.startsWith(href)
@@ -52,14 +53,14 @@ export default function NavBar() {
                 key={label}
                 href={href}
                 className={cn(
-                  'relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors',
+                  'relative flex items-center shrink-0 gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-md text-xs sm:text-sm font-semibold transition-colors',
                   active
                     ? 'text-foreground bg-accent'
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                 )}
               >
-                <Icon size={15} />
-                <span className="hidden sm:inline">{label}</span>
+                <Icon size={17} />
+                <span>{label}</span>
                 {label === 'Comunicados' && unreadCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] flex items-center justify-center font-bold">
                     {unreadCount}
@@ -74,12 +75,12 @@ export default function NavBar() {
         <div className="ml-auto flex items-center gap-1">
           {trip && <StatusBadge status={trip.status} />}
           <ThemeToggle />
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/login">
+          <SignOutButton redirectUrl="/sign-in">
+            <Button variant="ghost" size="sm">
               <LogOut size={15} />
               <span className="hidden sm:inline">Salir</span>
-            </Link>
-          </Button>
+            </Button>
+          </SignOutButton>
         </div>
       </div>
     </header>

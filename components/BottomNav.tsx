@@ -7,9 +7,9 @@ import { useTripContext } from '@/lib/trip-context'
 
 const tabs = [
   { label: 'Inicio', suffix: '', Icon: Home },
-  { label: 'Mapa', suffix: '/mapa', Icon: MapPin },
-  { label: 'Itinerario', suffix: '/itinerario', Icon: CalendarDays },
-  { label: 'Comunicados', suffix: '/comunicados', Icon: Bell },
+  { label: 'Mapa', suffix: '/map', Icon: MapPin },
+  { label: 'Itinerario', suffix: '/itinerary', Icon: CalendarDays },
+  { label: 'Comunicados', suffix: '/announcements', Icon: Bell },
 ]
 
 export default function BottomNav() {
@@ -17,7 +17,7 @@ export default function BottomNav() {
   const params = useParams()
   const tripId = params?.tripId as string
   const { unreadCount } = useTripContext()
-  const base = `/apoderado/${tripId}`
+  const base = `/parent/${tripId}`
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50">

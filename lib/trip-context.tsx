@@ -1,14 +1,9 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
-import {
-  TRIPS,
-  ITINERARY,
-  ANNOUNCEMENTS,
-  type Trip,
-  type ItineraryItem,
-  type Announcement,
-} from '@/lib/mock-data'
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import type { Trip, ItineraryItem, Announcement } from '@prisma/client'
+
+export type TripWithSchool = Trip & { school: { name: string } }
 
 export interface LocationPoint {
   lat: number
@@ -18,7 +13,7 @@ export interface LocationPoint {
 }
 
 interface TripContextValue {
-  trip: Trip | null
+  trip: TripWithSchool | null
   itinerary: ItineraryItem[]
   announcements: Announcement[]
   location: LocationPoint | null
@@ -28,43 +23,68 @@ interface TripContextValue {
 
 const TripContext = createContext<TripContextValue | null>(null)
 
-function drift(base: number, magnitude = 0.0015): number {
-  return base + (Math.random() - 0.5) * magnitude
-}
+const LOCATION_POLL_MS = 12000
 
 export function TripProvider({ tripId, children }: { tripId: string; children: ReactNode }) {
-  const trip = TRIPS[tripId] ?? null
-
-  const [location, setLocation] = useState<LocationPoint | null>(
-    trip
-      ? { lat: trip.initialLat, lng: trip.initialLng, accuracy: 12, updatedAt: new Date() }
-      : null
-  )
-  const [unreadCount, setUnreadCount] = useState(1)
+  const [trip, setTrip] = useState<TripWithSchool | null>(null)
+  const [itinerary, setItinerary] = useState<ItineraryItem[]>([])
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
+  const [location, setLocation] = useState<LocationPoint | null>(null)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
-    if (!trip) return
-    const id = setInterval(() => {
-      setLocation((prev) =>
-        prev
-          ? {
-              lat: drift(prev.lat),
-              lng: drift(prev.lng),
-              accuracy: Math.round(8 + Math.random() * 20),
-              updatedAt: new Date(),
-            }
-          : prev
-      )
-    }, 12000)
-    return () => clearInterval(id)
-  }, [trip])
+    let cancelled = false
+
+    async function load() {
+      const [tripRes, itineraryRes, announcementsRes] = await Promise.all([
+        fetch(`/api/v1/trips/${tripId}`),
+        fetch(`/api/v1/trips/${tripId}/itinerary`),
+        fetch(`/api/v1/trips/${tripId}/announcements`),
+      ])
+      if (cancelled) return
+
+      if (tripRes.ok) setTrip((await tripRes.json()).trip)
+      if (itineraryRes.ok) setItinerary((await itineraryRes.json()).items)
+      if (announcementsRes.ok) {
+        const { announcements: list } = await announcementsRes.json()
+        setAnnouncements(list)
+        setUnreadCount(list.length)
+      }
+    }
+
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [tripId])
+
+  const pollLocation = useCallback(async () => {
+    const res = await fetch(`/api/v1/trips/${tripId}/location`)
+    if (!res.ok) return
+    const { ping } = await res.json()
+    if (ping) {
+      setLocation({ lat: ping.lat, lng: ping.lng, accuracy: ping.accuracy, updatedAt: new Date(ping.createdAt) })
+    }
+  }, [tripId])
+
+  useEffect(() => {
+    const initialId = window.setTimeout(() => {
+      void pollLocation()
+    }, 0)
+    const intervalId = window.setInterval(pollLocation, LOCATION_POLL_MS)
+
+    return () => {
+      window.clearTimeout(initialId)
+      window.clearInterval(intervalId)
+    }
+  }, [pollLocation])
 
   return (
     <TripContext.Provider
       value={{
         trip,
-        itinerary: ITINERARY,
-        announcements: ANNOUNCEMENTS,
+        itinerary,
+        announcements,
         location,
         unreadCount,
         markAllRead: () => setUnreadCount(0),

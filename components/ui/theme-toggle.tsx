@@ -1,15 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 import { useTheme } from 'next-themes'
 import { Sun, Moon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
+function subscribe(onStoreChange: () => void) {
+  const id = window.setTimeout(onStoreChange, 0)
+  return () => window.clearTimeout(id)
+}
+
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => setMounted(true), [])
+  const mounted = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false
+  )
 
   if (!mounted) return <div className="w-8 h-8 shrink-0" />
 
