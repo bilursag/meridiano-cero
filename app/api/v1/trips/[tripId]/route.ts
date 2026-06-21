@@ -22,23 +22,46 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tri
   }
 }
 
-const patchSchema = z.object({ status: z.enum(TripStatus) })
+const patchSchema = z.object({
+  status: z.enum(TripStatus).optional(),
+  name: z.string().trim().min(1).optional(),
+  destination: z.string().trim().min(1).optional(),
+  startDate: z.iso.datetime().optional(),
+  endDate: z.iso.datetime().optional(),
+  totalDays: z.number().int().positive().optional(),
+  studentCount: z.number().int().nonnegative().optional(),
+})
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ tripId: string }> }) {
   try {
     const { tripId } = await params
     const { role } = await requireTripAccess(tripId)
-    if (role !== 'ADMIN' && role !== 'MONITOR') {
-      throw new ApiError('FORBIDDEN', 'Only monitors or admins can update trip status.')
-    }
 
     const json = await request.json().catch(() => null)
     const parsed = patchSchema.safeParse(json)
-    if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'A valid status is required.')
+    if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Invalid trip update payload.')
+
+    const { status, startDate, endDate, ...detailFields } = parsed.data
+    const hasDetailFields = startDate !== undefined || endDate !== undefined || Object.keys(detailFields).length > 0
+
+    if (hasDetailFields && role !== 'ADMIN') {
+      throw new ApiError('FORBIDDEN', 'Only admins can edit trip details.')
+    }
+    if (status !== undefined && role !== 'ADMIN' && role !== 'MONITOR') {
+      throw new ApiError('FORBIDDEN', 'Only monitors or admins can update trip status.')
+    }
+    if (!hasDetailFields && status === undefined) {
+      throw new ApiError('VALIDATION_ERROR', 'Nothing to update.')
+    }
 
     const trip = await prisma.trip.update({
       where: { id: tripId },
-      data: { status: parsed.data.status },
+      data: {
+        ...(status !== undefined ? { status } : {}),
+        ...detailFields,
+        ...(startDate !== undefined ? { startDate: new Date(startDate) } : {}),
+        ...(endDate !== undefined ? { endDate: new Date(endDate) } : {}),
+      },
     })
 
     return NextResponse.json({ trip })

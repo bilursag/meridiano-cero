@@ -109,6 +109,7 @@ model Announcement {
   message    String
   authorName String
   type       AnnouncementType @default(INFO)
+  photoUrl   String?
   createdAt  DateTime         @default(now())
 }
 
