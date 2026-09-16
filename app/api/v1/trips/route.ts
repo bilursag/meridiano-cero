@@ -38,6 +38,7 @@ export const GET = withApiHandler(async () => {
 const bodySchema = z
   .object({
     name: z.string().trim().min(1),
+    numeroGrupo: z.string().trim().min(1).optional(),
     curso: z.string().trim().min(1).optional(),
     ejecutivo: z.string().trim().min(1).optional(),
     school: z.string().trim().min(1),
