@@ -143,7 +143,7 @@ export default function AdminImportPage() {
     return rows.filter(
       (row) =>
         row.school.toLowerCase().includes(query) ||
-        row.ejecutivo.toLowerCase().includes(query) ||
+        row.salesExecutive.toLowerCase().includes(query) ||
         row.programCode.toLowerCase().includes(query) ||
         row.destinationCode.toLowerCase().includes(query) ||
         row.hotel.toLowerCase().includes(query)
@@ -164,13 +164,13 @@ export default function AdminImportPage() {
       const [primary, ...extra] = destinations
       const programName = programs.find((p) => p.id === programId)?.name
       const year = row.startDate ? new Date(row.startDate).getFullYear() : ''
-      const name = [row.school, row.curso, programName, year].filter(Boolean).join(' ')
+      const name = [row.school, row.grade, programName, year].filter(Boolean).join(' ')
       return {
         key: row.key,
         name,
-        numeroGrupo: row.grupo || undefined,
-        curso: row.curso || undefined,
-        ejecutivo: row.ejecutivo || undefined,
+        groupNumber: row.groupNumber || undefined,
+        grade: row.grade || undefined,
+        salesExecutive: row.salesExecutive || undefined,
         school: row.school,
         destination: destinations.map((d) => d.label).join(' → '),
         startDate: row.startDate!,
@@ -404,15 +404,15 @@ export default function AdminImportPage() {
                           <TableCell>
                             <Input
                               className="h-8 w-24"
-                              value={row.curso}
-                              onChange={(e) => updateRow(row.key, { curso: e.target.value })}
+                              value={row.grade}
+                              onChange={(e) => updateRow(row.key, { grade: e.target.value })}
                             />
                           </TableCell>
                           <TableCell>
                             <Input
                               className="h-8 w-28"
-                              value={row.ejecutivo}
-                              onChange={(e) => updateRow(row.key, { ejecutivo: e.target.value })}
+                              value={row.salesExecutive}
+                              onChange={(e) => updateRow(row.key, { salesExecutive: e.target.value })}
                             />
                           </TableCell>
                           <TableCell>

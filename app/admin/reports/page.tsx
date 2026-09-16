@@ -37,7 +37,7 @@ function downloadCsv(trips: TripRow[]) {
     trip.name,
     trip.school.name,
     trip.destination,
-    trip.ejecutivo ?? '',
+    trip.salesExecutive ?? '',
     trip.status,
     `${trip.currentDay}/${trip.totalDays}`,
     trip.studentCount,
@@ -102,7 +102,7 @@ export default function AdminReportsPage() {
     [trips]
   )
   const executiveOptions = useMemo(
-    () => Array.from(new Set(trips.map((trip) => trip.ejecutivo).filter((v): v is string => !!v))).sort(),
+    () => Array.from(new Set(trips.map((trip) => trip.salesExecutive).filter((v): v is string => !!v))).sort(),
     [trips]
   )
 
@@ -117,7 +117,7 @@ export default function AdminReportsPage() {
           const matchesMonitor =
             monitorFilter.length === 0 || trip.monitorNames.some((name) => monitorFilter.includes(name))
           const matchesExecutive =
-            executiveFilter.length === 0 || (!!trip.ejecutivo && executiveFilter.includes(trip.ejecutivo))
+            executiveFilter.length === 0 || (!!trip.salesExecutive && executiveFilter.includes(trip.salesExecutive))
           return matchesSearch && matchesSchool && matchesDestination && matchesMonitor && matchesExecutive
         })
         .map((trip) => trip.id)

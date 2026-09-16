@@ -6,9 +6,9 @@ import { applyProgramToTrip } from '@/lib/api/programs'
 
 export type TripCreateInput = {
   name: string
-  numeroGrupo?: string
-  curso?: string
-  ejecutivo?: string
+  groupNumber?: string
+  grade?: string
+  salesExecutive?: string
   school: string
   destination: string
   startDate: Date

@@ -34,7 +34,7 @@ export const GET = withApiHandler(async (request) => {
           ...(schoolFilter.length ? { school: { name: { in: schoolFilter } } } : {}),
           ...(destinationFilter.length ? { destination: { in: destinationFilter } } : {}),
           ...(groupFilter.length ? { name: { in: groupFilter } } : {}),
-          ...(executiveFilter.length ? { ejecutivo: { in: executiveFilter } } : {}),
+          ...(executiveFilter.length ? { salesExecutive: { in: executiveFilter } } : {}),
         },
       },
       select: { clerkUserId: true },

@@ -61,8 +61,8 @@ describe('parsePlanningWorkbook', () => {
 
     const row = result.rows[0]
     expect(row.school).toBe('Alicante de Valle')
-    expect(row.curso).toBe('3ºF')
-    expect(row.ejecutivo).toBe('Jmella')
+    expect(row.grade).toBe('3ºF')
+    expect(row.salesExecutive).toBe('Jmella')
     expect(row.coordinador).toBe('Pablo Soto')
     expect(row.studentCount).toBe(26)
     expect(row.studentCountFemale).toBe(13)

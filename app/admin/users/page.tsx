@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ChevronLeftIcon, ChevronRightIcon, SearchIcon, ShieldIcon, UserPlusIcon, XIcon } from 'lucide-react'
+import { ChevronLeftIcon, ChevronRightIcon, SearchIcon, ShieldIcon, UserPlusIcon, UsersIcon, XIcon } from 'lucide-react'
+import { toast } from 'sonner'
 import type { Role } from '@prisma/client'
 import { SiteHeader } from '@/components/site-header'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -27,6 +28,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { EmptyState } from '@/components/empty-state'
 import { FetchError } from '@/components/fetch-error'
 import { GlobalFilters } from '@/components/global-filters'
 import { MultiSelectFilter } from '@/components/multi-select-filter'
@@ -94,7 +96,7 @@ export default function AdminUsersPage() {
   const destinationOptions = useMemo(() => Array.from(new Set(allTrips.map((t) => t.destination))).sort(), [allTrips])
   const groupOptions = useMemo(() => Array.from(new Set(allTrips.map((t) => t.name))).sort(), [allTrips])
   const executiveOptions = useMemo(
-    () => Array.from(new Set(allTrips.map((t) => t.ejecutivo).filter((v): v is string => !!v))).sort(),
+    () => Array.from(new Set(allTrips.map((t) => t.salesExecutive).filter((v): v is string => !!v))).sort(),
     [allTrips]
   )
   const roleLabelOptions = useMemo(() => ROLE_OPTIONS.map((role) => roleLabels[role]), [])
@@ -149,7 +151,13 @@ export default function AdminUsersPage() {
     setTogglingAdminId(user.clerkUserId)
     const res = await fetch(`/api/v1/admin/team/${user.clerkUserId}`, { method: 'DELETE' })
     setTogglingAdminId(null)
-    if (res.ok) void load()
+    if (res.ok) {
+      toast.success('Acceso de administrador revocado.')
+      void load()
+    } else {
+      const data = await res.json().catch(() => null)
+      toast.error(data?.error?.message ?? 'No se pudo revocar el acceso.')
+    }
   }
 
   async function handleRemoveMembership(membership: Membership) {
@@ -157,7 +165,13 @@ export default function AdminUsersPage() {
     setRemovingMembershipId(membership.id)
     const res = await fetch(`/api/v1/trips/${membership.tripId}/roster/${membership.id}`, { method: 'DELETE' })
     setRemovingMembershipId(null)
-    if (res.ok) void load()
+    if (res.ok) {
+      toast.success('Rol quitado del grupo.')
+      void load()
+    } else {
+      const data = await res.json().catch(() => null)
+      toast.error(data?.error?.message ?? 'No se pudo quitar el rol.')
+    }
   }
 
   async function openAssignDialog(user: UserRow) {
@@ -182,6 +196,7 @@ export default function AdminUsersPage() {
     })
     setAssigning(false)
     if (res.ok) {
+      toast.success('Rol asociado al grupo.')
       setAssignOpen(null)
       void load()
     } else {
@@ -367,8 +382,12 @@ export default function AdminUsersPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-                      Sin usuarios registrados todavía.
+                    <TableCell colSpan={3}>
+                      <EmptyState
+                        icon={UsersIcon}
+                        title={query || roleFilter.length ? 'Sin resultados para estos filtros.' : 'Sin usuarios registrados todavía.'}
+                        description={query || roleFilter.length ? 'Prueba con otros filtros.' : undefined}
+                      />
                     </TableCell>
                   </TableRow>
                 )}

@@ -25,7 +25,7 @@ type FleetTrip = {
   destination: string
   status: TripStatus
   school: string
-  ejecutivo: string | null
+  salesExecutive: string | null
   ping: { lat: number; lng: number; createdAt: string } | null
   initialLat: number
   initialLng: number
@@ -73,17 +73,17 @@ export default function AdminPage() {
     [trips]
   )
   const executiveOptions = useMemo(
-    () => Array.from(new Set(trips.map((t) => t.ejecutivo).filter((v): v is string => !!v))).sort(),
+    () => Array.from(new Set(trips.map((t) => t.salesExecutive).filter((v): v is string => !!v))).sort(),
     [trips]
   )
   const matchesFilters = useCallback(
-    (name: string, school: string, destination: string, monitorNames: string[], ejecutivo: string | null) => {
+    (name: string, school: string, destination: string, monitorNames: string[], salesExecutive: string | null) => {
       const query = search.trim().toLowerCase()
       const matchesSearch = !query || name.toLowerCase().includes(query) || destination.toLowerCase().includes(query)
       const matchesSchool = schoolFilter.length === 0 || schoolFilter.includes(school)
       const matchesDestination = destinationFilter.length === 0 || destinationFilter.includes(destination)
       const matchesMonitor = monitorFilter.length === 0 || monitorNames.some((name) => monitorFilter.includes(name))
-      const matchesExecutive = executiveFilter.length === 0 || (!!ejecutivo && executiveFilter.includes(ejecutivo))
+      const matchesExecutive = executiveFilter.length === 0 || (!!salesExecutive && executiveFilter.includes(salesExecutive))
       return matchesSearch && matchesSchool && matchesDestination && matchesMonitor && matchesExecutive
     },
     [search, schoolFilter, destinationFilter, monitorFilter, executiveFilter]
@@ -92,7 +92,7 @@ export default function AdminPage() {
   const filteredTrips = useMemo(
     () =>
       trips.filter((trip) =>
-        matchesFilters(trip.name, trip.school.name, trip.destination, trip.monitorNames, trip.ejecutivo)
+        matchesFilters(trip.name, trip.school.name, trip.destination, trip.monitorNames, trip.salesExecutive)
       ),
     [trips, matchesFilters]
   )
@@ -114,7 +114,7 @@ export default function AdminPage() {
   const filteredFleet = useMemo(
     () =>
       (fleet ?? []).filter((trip) =>
-        matchesFilters(trip.name, trip.school, trip.destination, trip.monitorNames, trip.ejecutivo)
+        matchesFilters(trip.name, trip.school, trip.destination, trip.monitorNames, trip.salesExecutive)
       ),
     [fleet, matchesFilters]
   )
@@ -241,7 +241,7 @@ export default function AdminPage() {
                               <TableCell className="text-muted-foreground">
                                 {trip.monitorNames.join(', ') || '—'}
                               </TableCell>
-                              <TableCell className="text-muted-foreground">{trip.ejecutivo || '—'}</TableCell>
+                              <TableCell className="text-muted-foreground">{trip.salesExecutive || '—'}</TableCell>
                             </TableRow>
                           )
                         })

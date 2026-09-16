@@ -11,10 +11,10 @@ import * as XLSX from 'xlsx'
 export type ParsedImportRow = {
   key: string
   sheet: string
-  grupo: string
+  groupNumber: string
   school: string
-  curso: string
-  ejecutivo: string
+  grade: string
+  salesExecutive: string
   coordinador: string
   studentCount: number
   studentCountMale?: number
@@ -116,10 +116,10 @@ export function parsePlanningWorkbook(buffer: ArrayBuffer): ParsedImportResult {
     }
 
     const header = grid[headerRowIndex]
-    const grupoIdx = findColumnIndex(header, ['numero de grupo', 'grupo'])
-    const ejecutivoIdx = findColumnIndex(header, ['ejecutivo'])
+    const groupNumberIdx = findColumnIndex(header, ['numero de grupo', 'grupo'])
+    const salesExecutiveIdx = findColumnIndex(header, ['ejecutivo'])
     const colegioIdx = findColumnIndex(header, ['colegio'])
-    const cursoIdx = findColumnIndex(header, ['curso'])
+    const gradeIdx = findColumnIndex(header, ['curso'])
     const programaIdx = findColumnIndex(header, ['programa'])
     const destinoIdx = findColumnIndex(header, ['destino'])
     const alumFemIdx = findColumnIndex(header, ['alumnos femenino', 'alumno femenino'])
@@ -131,7 +131,7 @@ export function parsePlanningWorkbook(buffer: ArrayBuffer): ParsedImportResult {
     const hotelIdx = findColumnIndex(header, ['hotel'])
     const coordinadorIdx = findColumnIndex(header, ['coordinador'])
 
-    if ([colegioIdx, cursoIdx, programaIdx, destinoIdx, inIdx, outIdx].some((idx) => idx === -1)) {
+    if ([colegioIdx, gradeIdx, programaIdx, destinoIdx, inIdx, outIdx].some((idx) => idx === -1)) {
       sheetsSkipped.push({
         name: sheetName,
         reason: 'Faltan columnas obligatorias (Colegio, Curso, Programa, Destino, Fecha in o Fecha out).',
@@ -149,9 +149,9 @@ export function parsePlanningWorkbook(buffer: ArrayBuffer): ParsedImportResult {
       if (!school) continue
 
       const warnings: string[] = []
-      const grupo = grupoIdx >= 0 ? String(row[grupoIdx] ?? '').trim() : ''
-      const curso = String(row[cursoIdx] ?? '').trim()
-      const ejecutivo = ejecutivoIdx >= 0 ? String(row[ejecutivoIdx] ?? '').trim() : ''
+      const groupNumber = groupNumberIdx >= 0 ? String(row[groupNumberIdx] ?? '').trim() : ''
+      const grade = String(row[gradeIdx] ?? '').trim()
+      const salesExecutive = salesExecutiveIdx >= 0 ? String(row[salesExecutiveIdx] ?? '').trim() : ''
       const coordinador = coordinadorIdx >= 0 ? String(row[coordinadorIdx] ?? '').trim() : ''
 
       const alumFem = alumFemIdx >= 0 ? Number(row[alumFemIdx]) || 0 : 0
@@ -185,12 +185,12 @@ export function parsePlanningWorkbook(buffer: ArrayBuffer): ParsedImportResult {
       const hotel = hotelIdx >= 0 ? String(row[hotelIdx] ?? '').trim() : ''
 
       rows.push({
-        key: `${sheetName}__${grupo || i}`,
+        key: `${sheetName}__${groupNumber || i}`,
         sheet: sheetName,
-        grupo,
+        groupNumber,
         school,
-        curso,
-        ejecutivo,
+        grade,
+        salesExecutive,
         coordinador,
         studentCount,
         studentCountMale: alumMasc || undefined,

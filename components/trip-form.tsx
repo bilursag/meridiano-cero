@@ -28,8 +28,8 @@ type ExtraLeg = { key: string; destinationId: string }
 const EMPTY_FORM = {
   name: "",
   school: "",
-  curso: "",
-  ejecutivo: "",
+  grade: "",
+  salesExecutive: "",
   destination: "",
   studentCountMale: "",
   studentCountFemale: "",
@@ -104,8 +104,8 @@ export function TripForm({
   const autoName = useMemo(() => {
     const programName = programs.find((p) => p.id === programId)?.name
     const year = dateRange?.from?.getFullYear()
-    return [form.school.trim(), form.curso.trim(), programName, year].filter(Boolean).join(" ")
-  }, [form.school, form.curso, programs, programId, dateRange])
+    return [form.school.trim(), form.grade.trim(), programName, year].filter(Boolean).join(" ")
+  }, [form.school, form.grade, programs, programId, dateRange])
 
   // Adjusting state during render (rather than in an effect) avoids an extra
   // post-paint render pass — see https://react.dev/learn/you-might-not-need-an-effect.
@@ -171,8 +171,8 @@ export function TripForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
-        curso: form.curso.trim() || undefined,
-        ejecutivo: form.ejecutivo.trim() || undefined,
+        grade: form.grade.trim() || undefined,
+        salesExecutive: form.salesExecutive.trim() || undefined,
         school: form.school.trim(),
         startDate: dateRange.from.toISOString(),
         endDate: dateRange.to.toISOString(),
@@ -238,21 +238,21 @@ export function TripForm({
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="curso">Curso</Label>
+          <Label htmlFor="grade">Curso</Label>
           <Input
-            id="curso"
+            id="grade"
             placeholder="Ej: 4to Medio B"
-            value={form.curso}
-            onChange={(e) => setForm((p) => ({ ...p, curso: e.target.value }))}
+            value={form.grade}
+            onChange={(e) => setForm((p) => ({ ...p, grade: e.target.value }))}
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="ejecutivo">Ejecutivo</Label>
+          <Label htmlFor="salesExecutive">Ejecutivo</Label>
           <Input
-            id="ejecutivo"
+            id="salesExecutive"
             placeholder="Nombre del ejecutivo de ventas"
-            value={form.ejecutivo}
-            onChange={(e) => setForm((p) => ({ ...p, ejecutivo: e.target.value }))}
+            value={form.salesExecutive}
+            onChange={(e) => setForm((p) => ({ ...p, salesExecutive: e.target.value }))}
           />
         </div>
         <div className="flex flex-col gap-2 sm:col-span-2">

@@ -25,7 +25,6 @@ import {
   MoreVerticalIcon,
   PencilIcon,
   RouteIcon,
-  SearchIcon,
   Trash2Icon,
 } from "lucide-react"
 import { format } from "date-fns"
@@ -36,7 +35,7 @@ import type { AccessCode, ItineraryStatus, Trip } from "@prisma/client"
 import StatusBadge from "@/components/StatusBadge"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/empty-state"
-import { Input } from "@/components/ui/input"
+import { GlobalFilters } from "@/components/global-filters"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -128,14 +127,14 @@ function TripRowActions({ tripId, tripName, onDeleted }: { tripId: string; tripN
 function buildColumns(onTripDeleted: () => void): ColumnDef<TripRow>[] {
   return [
   {
-    accessorKey: "numeroGrupo",
+    accessorKey: "groupNumber",
     header: "N° Grupo",
-    cell: ({ row }) => row.original.numeroGrupo || "—",
+    cell: ({ row }) => row.original.groupNumber || "—",
   },
   {
-    accessorKey: "ejecutivo",
+    accessorKey: "salesExecutive",
     header: "Ejecutivo",
-    cell: ({ row }) => row.original.ejecutivo || "—",
+    cell: ({ row }) => row.original.salesExecutive || "—",
   },
   {
     accessorKey: "name",
@@ -198,7 +197,10 @@ export function DataTable({
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 })
   const [search, setSearch] = React.useState("")
-  const [schoolFilter, setSchoolFilter] = React.useState("all")
+  const [schoolFilter, setSchoolFilter] = React.useState<string[]>([])
+  const [destinationFilter, setDestinationFilter] = React.useState<string[]>([])
+  const [monitorFilter, setMonitorFilter] = React.useState<string[]>([])
+  const [executiveFilter, setExecutiveFilter] = React.useState<string[]>([])
   const [statusFilter, setStatusFilter] = React.useState<"all" | "active">("all")
   const columns = React.useMemo(() => buildColumns(onTripDeleted ?? (() => {})), [onTripDeleted])
 
@@ -206,18 +208,33 @@ export function DataTable({
     () => Array.from(new Set(data.map((trip) => trip.school.name))).sort(),
     [data]
   )
+  const destinationOptions = React.useMemo(
+    () => Array.from(new Set(data.map((trip) => trip.destination))).sort(),
+    [data]
+  )
+  const monitorOptions = React.useMemo(
+    () => Array.from(new Set(data.flatMap((trip) => trip.monitorNames))).sort(),
+    [data]
+  )
+  const executiveOptions = React.useMemo(
+    () => Array.from(new Set(data.map((trip) => trip.salesExecutive).filter((v): v is string => !!v))).sort(),
+    [data]
+  )
 
   const filteredData = React.useMemo(() => {
     const query = search.trim().toLowerCase()
     return data.filter((trip) => {
       if (statusFilter === "active" && trip.status === "FINISHED") return false
-      if (schoolFilter !== "all" && trip.school.name !== schoolFilter) return false
+      if (schoolFilter.length && !schoolFilter.includes(trip.school.name)) return false
+      if (destinationFilter.length && !destinationFilter.includes(trip.destination)) return false
+      if (monitorFilter.length && !trip.monitorNames.some((name) => monitorFilter.includes(name))) return false
+      if (executiveFilter.length && (!trip.salesExecutive || !executiveFilter.includes(trip.salesExecutive))) return false
       if (query && !trip.name.toLowerCase().includes(query) && !trip.destination.toLowerCase().includes(query)) {
         return false
       }
       return true
     })
-  }, [data, search, schoolFilter, statusFilter])
+  }, [data, search, schoolFilter, destinationFilter, monitorFilter, executiveFilter, statusFilter])
 
   const table = useReactTable({
     data: filteredData,
@@ -293,29 +310,24 @@ export function DataTable({
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <div className="relative flex-1 sm:max-w-xs">
-          <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nombre o destino…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-        <Select value={schoolFilter} onValueChange={setSchoolFilter}>
-          <SelectTrigger className="w-full sm:w-56">
-            <SelectValue placeholder="Todos los colegios" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los colegios</SelectItem>
-            {schoolOptions.map((school) => (
-              <SelectItem key={school} value={school}>
-                {school}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <GlobalFilters
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Buscar por nombre o destino…"
+          schoolOptions={schoolOptions}
+          schoolFilter={schoolFilter}
+          onSchoolFilterChange={setSchoolFilter}
+          destinationOptions={destinationOptions}
+          destinationFilter={destinationFilter}
+          onDestinationFilterChange={setDestinationFilter}
+          monitorOptions={monitorOptions}
+          monitorFilter={monitorFilter}
+          onMonitorFilterChange={setMonitorFilter}
+          executiveOptions={executiveOptions}
+          executiveFilter={executiveFilter}
+          onExecutiveFilterChange={setExecutiveFilter}
+        />
       </div>
 
       <div className="overflow-hidden rounded-lg border bg-card">
@@ -347,7 +359,7 @@ export function DataTable({
                     icon={RouteIcon}
                     title={data.length ? "Sin resultados para estos filtros." : "Sin grupos todavía."}
                     description={
-                      data.length ? "Prueba con otra búsqueda o colegio." : "Crea el primer grupo para empezar."
+                      data.length ? "Prueba con otros filtros." : "Crea el primer grupo para empezar."
                     }
                   />
                 </TableCell>

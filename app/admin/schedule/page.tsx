@@ -22,7 +22,7 @@ type ScheduleTrip = {
   name: string
   destination: string
   school: { name: string }
-  ejecutivo: string | null
+  salesExecutive: string | null
   program: { name: string }
   studentCount: number
   hotel: string | null
@@ -90,7 +90,7 @@ export default function AdminSchedulePage() {
     [trips]
   )
   const executiveOptions = useMemo(
-    () => Array.from(new Set((trips ?? []).map((trip) => trip.ejecutivo).filter((v): v is string => !!v))).sort(),
+    () => Array.from(new Set((trips ?? []).map((trip) => trip.salesExecutive).filter((v): v is string => !!v))).sort(),
     [trips]
   )
 
@@ -102,7 +102,7 @@ export default function AdminSchedulePage() {
       const matchesDestination = destinationFilter.length === 0 || destinationFilter.includes(trip.destination)
       const matchesMonitor =
         monitorFilter.length === 0 || trip.monitorNames.some((name) => monitorFilter.includes(name))
-      const matchesExecutive = executiveFilter.length === 0 || (!!trip.ejecutivo && executiveFilter.includes(trip.ejecutivo))
+      const matchesExecutive = executiveFilter.length === 0 || (!!trip.salesExecutive && executiveFilter.includes(trip.salesExecutive))
       return matchesSearch && matchesSchool && matchesDestination && matchesMonitor && matchesExecutive
     })
   }, [trips, search, schoolFilter, destinationFilter, monitorFilter, executiveFilter])
@@ -223,7 +223,7 @@ export default function AdminSchedulePage() {
                         </Tooltip>
                       </TableCell>
                       <TableCell className="w-24 py-5 text-muted-foreground">
-                        <span className="block truncate">{trip.ejecutivo || '—'}</span>
+                        <span className="block truncate">{trip.salesExecutive || '—'}</span>
                       </TableCell>
                       <TableCell className="w-14 py-5">{trip.studentCount}</TableCell>
                       <TableCell className="w-28 py-5 text-muted-foreground">
@@ -322,7 +322,7 @@ function TripDetailPopoverContent({ trip }: { trip: ScheduleTrip }) {
         </div>
         <div>
           <p className="text-xs text-muted-foreground">Ejecutivo</p>
-          <p>{trip.ejecutivo ?? '—'}</p>
+          <p>{trip.salesExecutive ?? '—'}</p>
         </div>
       </div>
       {dayNumbers.length > 0 && (

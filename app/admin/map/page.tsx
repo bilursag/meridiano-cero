@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import type { TripStatus } from '@prisma/client'
+import { MapPinIcon } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
 import StatusBadge from '@/components/StatusBadge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/empty-state'
 import { FetchError } from '@/components/fetch-error'
 import { GlobalFilters } from '@/components/global-filters'
 import type { FleetMarker } from '@/components/FleetMapView'
@@ -19,7 +21,7 @@ type FleetTrip = {
   destination: string
   status: TripStatus
   school: string
-  ejecutivo: string | null
+  salesExecutive: string | null
   ping: { lat: number; lng: number; createdAt: string } | null
   initialLat: number
   initialLng: number
@@ -75,7 +77,7 @@ export default function AdminMapPage() {
     [fleet]
   )
   const executiveOptions = useMemo(
-    () => Array.from(new Set((fleet ?? []).map((trip) => trip.ejecutivo).filter((v): v is string => !!v))).sort(),
+    () => Array.from(new Set((fleet ?? []).map((trip) => trip.salesExecutive).filter((v): v is string => !!v))).sort(),
     [fleet]
   )
 
@@ -88,7 +90,7 @@ export default function AdminMapPage() {
       const matchesDestination = destinationFilter.length === 0 || destinationFilter.includes(trip.destination)
       const matchesMonitor =
         monitorFilter.length === 0 || trip.monitorNames.some((name) => monitorFilter.includes(name))
-      const matchesExecutive = executiveFilter.length === 0 || (!!trip.ejecutivo && executiveFilter.includes(trip.ejecutivo))
+      const matchesExecutive = executiveFilter.length === 0 || (!!trip.salesExecutive && executiveFilter.includes(trip.salesExecutive))
       return matchesSearch && matchesSchool && matchesDestination && matchesMonitor && matchesExecutive
     })
   }, [fleet, search, schoolFilter, destinationFilter, monitorFilter, executiveFilter])
@@ -153,8 +155,12 @@ export default function AdminMapPage() {
                 height="calc(100vh - 232px)"
               />
             ) : (
-              <CardContent className="flex h-[calc(100vh-232px)] items-center justify-center text-muted-foreground">
-                {fleet && fleet.length > 0 ? 'Sin grupos que coincidan con el filtro.' : 'Sin grupos en terreno actualmente.'}
+              <CardContent className="flex h-[calc(100vh-232px)] items-center justify-center">
+                <EmptyState
+                  icon={MapPinIcon}
+                  title={fleet.length > 0 ? 'Sin grupos que coincidan con el filtro.' : 'Sin grupos en terreno actualmente.'}
+                  description={fleet.length > 0 ? 'Prueba con otros filtros.' : undefined}
+                />
               </CardContent>
             )}
           </Card>
@@ -183,9 +189,11 @@ export default function AdminMapPage() {
                 </button>
               ))}
               {filteredFleet.length === 0 ? (
-                <p className="p-3 text-sm text-muted-foreground">
-                  {fleet && fleet.length > 0 ? 'Sin grupos que coincidan con el filtro.' : 'Sin grupos en terreno actualmente.'}
-                </p>
+                <EmptyState
+                  icon={MapPinIcon}
+                  title={fleet.length > 0 ? 'Sin grupos que coincidan con el filtro.' : 'Sin grupos en terreno actualmente.'}
+                  description={fleet.length > 0 ? 'Prueba con otros filtros.' : undefined}
+                />
               ) : null}
             </CardContent>
           </Card>

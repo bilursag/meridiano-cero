@@ -636,10 +636,10 @@ export default function AdminTripDetailPage() {
               <p className="text-xs text-muted-foreground">Destino</p>
               <p className="text-sm font-medium">{trip.destination}</p>
             </div>
-            {trip.ejecutivo ? (
+            {trip.salesExecutive ? (
               <div className="pl-6">
                 <p className="text-xs text-muted-foreground">Ejecutivo</p>
-                <p className="text-sm font-medium">{trip.ejecutivo}</p>
+                <p className="text-sm font-medium">{trip.salesExecutive}</p>
               </div>
             ) : null}
             <div className="pl-6">
