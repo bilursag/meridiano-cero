@@ -48,6 +48,7 @@ model AdminUser {
 model Trip {
   id                   String     @id @default(cuid())
   name                 String
+  numeroGrupo          String?
   curso                String?
   ejecutivo            String?
   destination          String
