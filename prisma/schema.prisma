@@ -48,9 +48,9 @@ model AdminUser {
 model Trip {
   id                   String     @id @default(cuid())
   name                 String
-  numeroGrupo          String?
-  curso                String?
-  ejecutivo            String?
+  groupNumber          String?
+  grade                String?
+  salesExecutive       String?
   destination          String
   schoolId             String
   school               School     @relation(fields: [schoolId], references: [id])
