@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { differenceInCalendarDays } from 'date-fns'
 import { Role } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { ApiError } from '@/lib/api/errors'
 import { requireAdmin } from '@/lib/api/require-role'
 import { withApiHandler } from '@/lib/api/handler'
-import { applyProgramToTrip } from '@/lib/api/programs'
+import { createTrip } from '@/lib/api/trips'
 import { describeUsers } from '@/lib/api/clerk-users'
 
 export const GET = withApiHandler(async () => {
@@ -79,40 +78,11 @@ export const POST = withApiHandler(async (request) => {
   const parsed = bodySchema.safeParse(json)
   if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Missing or invalid trip fields.')
 
-  const { school: schoolName, parentCode, monitorCode, studentCode, programId, legs, ...tripData } = parsed.data
-  const startDate = new Date(tripData.startDate)
-  const endDate = new Date(tripData.endDate)
-  const totalDays = differenceInCalendarDays(endDate, startDate) + 1
-
-  const program = await prisma.program.findUnique({ where: { id: programId } })
-  if (!program) throw new ApiError('VALIDATION_ERROR', 'Program not found.')
-
-  const school =
-    (await prisma.school.findFirst({ where: { name: { equals: schoolName, mode: 'insensitive' } } })) ??
-    (await prisma.school.create({ data: { name: schoolName } }))
-
-  const trip = await prisma.trip.create({
-    data: {
-      ...tripData,
-      startDate,
-      endDate,
-      totalDays,
-      schoolId: school.id,
-      programId,
-      accessCodes: {
-        create: [
-          { code: parentCode.toUpperCase(), role: Role.PARENT },
-          { code: monitorCode.toUpperCase(), role: Role.MONITOR },
-          { code: studentCode.toUpperCase(), role: Role.STUDENT },
-        ],
-      },
-      ...(legs && legs.length > 0
-        ? { legs: { create: legs.map((leg, index) => ({ ...leg, order: index })) } }
-        : {}),
-    },
+  const trip = await createTrip({
+    ...parsed.data,
+    startDate: new Date(parsed.data.startDate),
+    endDate: new Date(parsed.data.endDate),
   })
-
-  await applyProgramToTrip(trip.id, programId)
 
   return NextResponse.json({ trip }, { status: 201 })
 })
