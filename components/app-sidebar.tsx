@@ -7,6 +7,7 @@ import {
   IconCalendarStats,
   IconClipboardList,
   IconDashboard,
+  IconFileImport,
   IconHelp,
   IconLayoutGrid,
   IconMap,
@@ -53,6 +54,7 @@ const managementItems = [
   { name: "Códigos", url: "/admin/codes", icon: IconTicket },
   { name: "Equipo", url: "/admin/team", icon: IconUsers },
   { name: "Usuarios", url: "/admin/users", icon: IconUserCog },
+  { name: "Importar", url: "/admin/import", icon: IconFileImport },
 ]
 
 const data = {

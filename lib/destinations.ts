@@ -24,6 +24,24 @@ export const KNOWN_DESTINATIONS = [
     lat: -27.1502,
     lng: -109.426,
   },
+  {
+    id: 'huilo-huilo',
+    label: 'Huilo-Huilo, Chile',
+    lat: -39.8667,
+    lng: -71.8333,
+  },
+  {
+    id: 'puerto-varas',
+    label: 'Puerto Varas, Chile',
+    lat: -41.3195,
+    lng: -72.9854,
+  },
+  {
+    id: 'republica-dominicana',
+    label: 'República Dominicana (Punta Cana)',
+    lat: 18.5601,
+    lng: -68.3725,
+  },
 ] as const
 
 export type KnownDestinationId = (typeof KNOWN_DESTINATIONS)[number]['id']
