@@ -154,6 +154,11 @@ function buildColumns(onTripDeleted: () => void): ColumnDef<TripRow>[] {
     header: "Destino",
   },
   {
+    accessorKey: "hotel",
+    header: "Hotel",
+    cell: ({ row }) => row.original.hotel || "—",
+  },
+  {
     accessorKey: "status",
     header: "Estado",
     cell: ({ row }) => <StatusBadge status={row.original.status} />,
@@ -167,6 +172,15 @@ function buildColumns(onTripDeleted: () => void): ColumnDef<TripRow>[] {
         {format(new Date(row.original.endDate), "d MMM", { locale: es })}
       </span>
     ),
+  },
+  {
+    id: "pax",
+    header: "Pax",
+    cell: ({ row }) => {
+      const trip = row.original
+      const pax = trip.studentCount + (trip.companionCountMale ?? 0) + (trip.companionCountFemale ?? 0)
+      return <span>{pax}</span>
+    },
   },
   {
     id: "monitor",
