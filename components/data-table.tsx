@@ -68,14 +68,6 @@ export type TripRow = Trip & {
   itineraryItems: { dayNumber: number; title: string; status: ItineraryStatus }[]
 }
 
-function codeFor(trip: TripRow, role: "PARENT" | "MONITOR") {
-  return trip.accessCodes.find((c) => c.role === role)?.code ?? "—"
-}
-
-function studentCodeCount(trip: TripRow) {
-  return trip.accessCodes.filter((c) => c.role === "STUDENT").length
-}
-
 function TripRowActions({ tripId, tripName, onDeleted }: { tripId: string; tripName: string; onDeleted: () => void }) {
   const [deleting, setDeleting] = React.useState(false)
 
@@ -136,6 +128,16 @@ function TripRowActions({ tripId, tripName, onDeleted }: { tripId: string; tripN
 function buildColumns(onTripDeleted: () => void): ColumnDef<TripRow>[] {
   return [
   {
+    accessorKey: "numeroGrupo",
+    header: "N° Grupo",
+    cell: ({ row }) => row.original.numeroGrupo || "—",
+  },
+  {
+    accessorKey: "ejecutivo",
+    header: "Ejecutivo",
+    cell: ({ row }) => row.original.ejecutivo || "—",
+  },
+  {
     accessorKey: "name",
     header: ({ column }) => (
       <Button variant="ghost" size="sm" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
@@ -154,11 +156,6 @@ function buildColumns(onTripDeleted: () => void): ColumnDef<TripRow>[] {
     header: "Destino",
   },
   {
-    accessorKey: "hotel",
-    header: "Hotel",
-    cell: ({ row }) => row.original.hotel || "—",
-  },
-  {
     accessorKey: "status",
     header: "Estado",
     cell: ({ row }) => <StatusBadge status={row.original.status} />,
@@ -174,45 +171,9 @@ function buildColumns(onTripDeleted: () => void): ColumnDef<TripRow>[] {
     ),
   },
   {
-    id: "pax",
-    header: "Pax",
-    cell: ({ row }) => {
-      const trip = row.original
-      const pax = trip.studentCount + (trip.companionCountMale ?? 0) + (trip.companionCountFemale ?? 0)
-      return <span>{pax}</span>
-    },
-  },
-  {
-    id: "monitor",
-    header: "Coordinador",
-    cell: ({ row }) => row.original.monitorNames.join(", ") || "—",
-  },
-  {
-    accessorKey: "ejecutivo",
-    header: "Ejecutivo",
-    cell: ({ row }) => row.original.ejecutivo || "—",
-  },
-  {
-    id: "parentCode",
-    header: "Código apoderado",
-    cell: ({ row }) => <span className="font-mono text-xs">{codeFor(row.original, "PARENT")}</span>,
-  },
-  {
-    id: "monitorCode",
-    header: "Código coordinador",
-    cell: ({ row }) => <span className="font-mono text-xs">{codeFor(row.original, "MONITOR")}</span>,
-  },
-  {
-    id: "studentCodes",
-    header: "Códigos alumno",
-    cell: ({ row }) => {
-      const count = studentCodeCount(row.original)
-      return (
-        <span className="text-xs text-muted-foreground">
-          {count > 0 ? `${count} generado${count === 1 ? "" : "s"}` : "Sin códigos"}
-        </span>
-      )
-    },
+    accessorKey: "hotel",
+    header: "Hotel",
+    cell: ({ row }) => row.original.hotel || "—",
   },
   {
     id: "actions",
