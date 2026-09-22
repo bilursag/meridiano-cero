@@ -14,6 +14,7 @@ export const GET = withApiHandler(async () => {
   const trips = await prisma.trip.findMany({
     include: {
       school: { select: { name: true } },
+      program: { select: { name: true } },
       accessCodes: true,
       memberships: { where: { role: Role.MONITOR }, select: { clerkUserId: true } },
       itineraryItems: {

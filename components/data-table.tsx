@@ -62,6 +62,7 @@ import {
 
 export type TripRow = Trip & {
   school: { name: string }
+  program: { name: string }
   accessCodes: AccessCode[]
   monitorNames: string[]
   itineraryItems: { dayNumber: number; title: string; status: ItineraryStatus }[]
@@ -135,6 +136,53 @@ function buildColumns(onTripDeleted: () => void): ColumnDef<TripRow>[] {
     accessorKey: "salesExecutive",
     header: "Ejecutivo",
     cell: ({ row }) => row.original.salesExecutive || "—",
+  },
+  {
+    id: "school",
+    accessorFn: (row) => row.school.name,
+    header: "Colegio",
+  },
+  {
+    accessorKey: "studentCount",
+    header: "N° PAX",
+  },
+  {
+    id: "paxFormula",
+    header: "N PAX fórmula",
+    cell: ({ row }) => {
+      const t = row.original
+      return (
+        (t.studentCountFemale ?? 0) +
+        (t.studentCountMale ?? 0) +
+        (t.companionCountFemale ?? 0) +
+        (t.companionCountMale ?? 0)
+      )
+    },
+  },
+  {
+    accessorKey: "studentCountFemale",
+    header: "Alum Fem",
+    cell: ({ row }) => row.original.studentCountFemale ?? "—",
+  },
+  {
+    accessorKey: "studentCountMale",
+    header: "Alum Masc",
+    cell: ({ row }) => row.original.studentCountMale ?? "—",
+  },
+  {
+    accessorKey: "companionCountFemale",
+    header: "Apod Fem",
+    cell: ({ row }) => row.original.companionCountFemale ?? "—",
+  },
+  {
+    accessorKey: "companionCountMale",
+    header: "Apod Masc",
+    cell: ({ row }) => row.original.companionCountMale ?? "—",
+  },
+  {
+    id: "program",
+    accessorFn: (row) => row.program.name,
+    header: "Programa",
   },
   {
     accessorKey: "name",

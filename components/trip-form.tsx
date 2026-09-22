@@ -28,6 +28,7 @@ type ExtraLeg = { key: string; destinationId: string }
 const EMPTY_FORM = {
   name: "",
   school: "",
+  groupNumber: "",
   grade: "",
   salesExecutive: "",
   destination: "",
@@ -171,6 +172,7 @@ export function TripForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
+        groupNumber: form.groupNumber.trim() || undefined,
         grade: form.grade.trim() || undefined,
         salesExecutive: form.salesExecutive.trim() || undefined,
         school: form.school.trim(),
@@ -235,6 +237,15 @@ export function TripForm({
             placeholder="Nombre del colegio"
             value={form.school}
             onChange={(e) => handleSchoolChange(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="groupNumber">N° Grupo</Label>
+          <Input
+            id="groupNumber"
+            placeholder="Ej: 1"
+            value={form.groupNumber}
+            onChange={(e) => setForm((p) => ({ ...p, groupNumber: e.target.value }))}
           />
         </div>
         <div className="flex flex-col gap-2">
