@@ -147,19 +147,6 @@ function buildColumns(onTripDeleted: () => void): ColumnDef<TripRow>[] {
     header: "N° PAX",
   },
   {
-    id: "paxFormula",
-    header: "N PAX fórmula",
-    cell: ({ row }) => {
-      const t = row.original
-      return (
-        (t.studentCountFemale ?? 0) +
-        (t.studentCountMale ?? 0) +
-        (t.companionCountFemale ?? 0) +
-        (t.companionCountMale ?? 0)
-      )
-    },
-  },
-  {
     accessorKey: "studentCountFemale",
     header: "Alum Fem",
     cell: ({ row }) => row.original.studentCountFemale ?? "—",
@@ -183,6 +170,11 @@ function buildColumns(onTripDeleted: () => void): ColumnDef<TripRow>[] {
     id: "program",
     accessorFn: (row) => row.program.name,
     header: "Programa",
+  },
+  {
+    id: "coordinador",
+    header: "Coordinador",
+    cell: ({ row }) => row.original.monitorNames.join(", ") || "—",
   },
   {
     accessorKey: "name",
