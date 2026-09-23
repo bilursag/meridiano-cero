@@ -12,6 +12,11 @@ export const GET = withApiHandler(async () => {
   await requireAdmin()
 
   const trips = await prisma.trip.findMany({
+    // Safety cap: every admin page that calls this endpoint expects the
+    // full trip list to build its own client-side filters, so this isn't
+    // real pagination — just a ceiling so the query can't grow unbounded
+    // as the trip archive accumulates over time.
+    take: 500,
     include: {
       school: { select: { name: true } },
       program: { select: { name: true } },

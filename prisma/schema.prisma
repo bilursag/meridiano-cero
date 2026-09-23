@@ -77,6 +77,9 @@ model Trip {
   announcements  Announcement[]
   locationPings  LocationPing[]
   legs           TripLeg[]
+
+  @@index([schoolId])
+  @@index([programId])
 }
 
 model TripLeg {
@@ -89,6 +92,8 @@ model TripLeg {
   lng       Float
   startDate DateTime?
   endDate   DateTime?
+
+  @@index([tripId])
 }
 
 model Program {
@@ -112,6 +117,8 @@ model ProgramItem {
   description         String
   requirementsMessage String?
   order               Int
+
+  @@index([programId])
 }
 
 model AccessCode {
@@ -121,6 +128,8 @@ model AccessCode {
   tripId    String
   trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+
+  @@index([tripId])
 }
 
 model TripMembership {
@@ -132,6 +141,7 @@ model TripMembership {
   createdAt   DateTime @default(now())
 
   @@unique([clerkUserId, tripId, role])
+  @@index([tripId])
 }
 
 model ItineraryItem {
@@ -147,6 +157,8 @@ model ItineraryItem {
   order               Int
   photoUrl            String?
   requirementsMessage String?
+
+  @@index([tripId])
 }
 
 model Announcement {
@@ -159,6 +171,8 @@ model Announcement {
   type       AnnouncementType @default(INFO)
   photoUrl   String?
   createdAt  DateTime         @default(now())
+
+  @@index([tripId])
 }
 
 model AnnouncementTemplate {
