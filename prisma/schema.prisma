@@ -33,6 +33,13 @@ enum AnnouncementType {
   ACHIEVEMENT
 }
 
+enum NotificationType {
+  TRIP_ALERT
+  TRIP_ACHIEVEMENT
+  MONITOR_JOINED
+  TRIP_STATUS_CHANGED
+}
+
 model School {
   id    String @id @default(cuid())
   name  String @unique
@@ -40,9 +47,10 @@ model School {
 }
 
 model AdminUser {
-  id          String   @id @default(cuid())
-  clerkUserId String   @unique
-  createdAt   DateTime @default(now())
+  id                  String    @id @default(cuid())
+  clerkUserId         String    @unique
+  createdAt           DateTime  @default(now())
+  notificationsSeenAt DateTime?
 }
 
 model Trip {
@@ -77,6 +85,7 @@ model Trip {
   announcements  Announcement[]
   locationPings  LocationPing[]
   legs           TripLeg[]
+  notifications  Notification[]
 
   @@index([schoolId])
   @@index([programId])
@@ -172,6 +181,21 @@ model Announcement {
   photoUrl   String?
   createdAt  DateTime         @default(now())
 
+  @@index([tripId])
+}
+
+// Shared by every admin: a single feed, with per-admin unread state tracked
+// as AdminUser.notificationsSeenAt rather than one read row per notification.
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  title     String
+  body      String
+  tripId    String?
+  trip      Trip?            @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+
+  @@index([createdAt])
   @@index([tripId])
 }
 

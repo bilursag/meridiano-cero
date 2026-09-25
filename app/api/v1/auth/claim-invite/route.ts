@@ -4,6 +4,7 @@ import { Role } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { ApiError } from '@/lib/api/errors'
 import { withApiHandler } from '@/lib/api/handler'
+import { notifyInBackground, notifyMonitorJoined } from '@/lib/notifications'
 
 type PendingTripInvite = { tripId: string; role: Role }
 
@@ -39,17 +40,15 @@ export const POST = withApiHandler(async () => {
   }
 
   if (pendingTripInvite) {
-    await prisma.tripMembership.upsert({
-      where: {
-        clerkUserId_tripId_role: {
-          clerkUserId: user.id,
-          tripId: pendingTripInvite.tripId,
-          role: pendingTripInvite.role,
-        },
-      },
-      update: {},
-      create: { clerkUserId: user.id, tripId: pendingTripInvite.tripId, role: pendingTripInvite.role },
+    // createMany + skipDuplicates instead of upsert so we know whether this is a new membership.
+    const { count: created } = await prisma.tripMembership.createMany({
+      data: { clerkUserId: user.id, tripId: pendingTripInvite.tripId, role: pendingTripInvite.role },
+      skipDuplicates: true,
     })
+
+    if (created > 0 && pendingTripInvite.role === Role.MONITOR) {
+      notifyInBackground(() => notifyMonitorJoined(pendingTripInvite.tripId, user.id))
+    }
   }
 
   const remainingMetadata = { ...user.publicMetadata }

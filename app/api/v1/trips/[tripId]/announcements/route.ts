@@ -6,6 +6,7 @@ import { prisma } from '@/lib/db'
 import { ApiError } from '@/lib/api/errors'
 import { requireTripAccess, requireTripWrite } from '@/lib/api/require-role'
 import { withApiHandler } from '@/lib/api/handler'
+import { notifyAnnouncement, notifyInBackground } from '@/lib/notifications'
 
 const MAX_FILE_SIZE = 8 * 1024 * 1024
 
@@ -30,7 +31,7 @@ export const GET = withApiHandler<{ tripId: string }>(async (_request, { params 
 
 export const POST = withApiHandler<{ tripId: string }>(async (request, { params }) => {
   const { tripId } = await params
-  await requireTripWrite(tripId, [Role.MONITOR])
+  const { role } = await requireTripWrite(tripId, [Role.MONITOR])
 
   const contentType = request.headers.get('content-type') ?? ''
   let data: z.infer<typeof bodySchema>
@@ -70,6 +71,8 @@ export const POST = withApiHandler<{ tripId: string }>(async (request, { params 
   const announcement = await prisma.announcement.create({
     data: { tripId, ...data, ...(photoUrl ? { photoUrl } : {}) },
   })
+
+  if (role !== 'ADMIN') notifyInBackground(() => notifyAnnouncement(tripId, announcement))
 
   return NextResponse.json({ announcement }, { status: 201 })
 })

@@ -1,5 +1,6 @@
 import type React from "react"
 
+import { NotificationBell } from "@/components/notification-bell"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
@@ -35,6 +36,7 @@ export function SiteHeader({
           ) : null}
         </div>
         {right}
+        <NotificationBell />
       </div>
     </header>
   )
