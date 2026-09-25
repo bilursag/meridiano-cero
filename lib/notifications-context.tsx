@@ -29,7 +29,8 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
 
   const load = React.useCallback(async () => {
     const res = await fetch("/api/v1/admin/notifications").catch(() => null)
-    if (!res?.ok) return
+    // When the Clerk session lapses, the proxy answers with the sign-in page (HTML, 200) instead of JSON.
+    if (!res?.ok || !res.headers.get("content-type")?.includes("application/json")) return
     const data: { notifications: AdminNotification[]; unreadCount: number; seenAt: string } = await res.json()
 
     if (knownIds.current) {
