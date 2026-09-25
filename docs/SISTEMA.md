@@ -54,6 +54,7 @@ Entidades sin relación directa en el diagrama:
 - `AnnouncementTemplate` — mensajes predefinidos que usa el monitor.
 - `ActivityTemplate` — actividades predefinidas para armar itinerarios.
 - `RedeemAttempt` — rate-limit del canje de códigos.
+- `Notification` — feed de notificaciones del panel admin (ver §5.1). `tripId` opcional, con borrado en cascada si se elimina la gira.
 
 Puntos clave del modelo:
 
@@ -105,6 +106,25 @@ Sidebar con estas secciones (`components/app-sidebar.tsx`):
 - Paneles laterales (`Sheet`) para formularios largos en vez de diálogos centrados, con animación de entrada/salida (`ease-out` tipo "snappy" al abrir, `ease-in` más rápido al cerrar).
 - El editor de ítem de actividad (día, hora, título, lugar, descripción, requisitos) es un único componente compartido (`components/activity-item-form.tsx`) usado tanto por el itinerario de una gira como por un programa — el único parámetro que cambia es si el "día" es un selector acotado a la duración de la gira o un número libre (programa).
 
+### 5.1 Notificaciones del panel
+
+Campana con contador de no leídas en el header de todas las páginas de `/admin` (`components/notification-bell.tsx`, montada en `SiteHeader`; no aparece en las vistas de monitor/apoderado porque solo se renderiza dentro del `NotificationsProvider` del layout admin).
+
+Solo se notifica lo que ocurre **fuera del panel** — las acciones de un admin ya tienen su toast:
+
+| Evento | Origen | `NotificationType` |
+|---|---|---|
+| Monitor publica un comunicado `ALERT` | `POST trips/[tripId]/announcements` | `TRIP_ALERT` — además dispara un toast rojo si el panel está abierto |
+| Monitor publica un comunicado `ACHIEVEMENT` | `POST trips/[tripId]/announcements` | `TRIP_ACHIEVEMENT` |
+| Un monitor se une a una gira por primera vez | `auth/redeem`, `auth/claim-invite` | `MONITOR_JOINED` |
+| Monitor cambia el estado de la gira | `PATCH trips/[tripId]` | `TRIP_STATUS_CHANGED` |
+
+Los comunicados `INFO` (transiciones de itinerario) no generan notificación a propósito, para no saturar el feed.
+
+- **Feed compartido**: todos los admins ven las mismas notificaciones. El estado de lectura es por admin, con un solo timestamp (`AdminUser.notificationsSeenAt`): no leída = creada después de ese momento. Abrir la campana marca todo como visto. Un admin nuevo parte con contador en 0 (se usa su `createdAt` si nunca abrió la campana).
+- **Creación** (`lib/notifications.ts`): cada endpoint llama a `notifyInBackground(...)`, que corre dentro de `after()` de Next — se ejecuta después de enviar la respuesta y un error ahí se loguea sin afectar la petición del monitor.
+- **Entrega**: polling cada 30 s desde `lib/notifications-context.tsx` (pausado con la pestaña oculta, refresco inmediato al volver). No hay WebSockets/SSE.
+
 ## 6. Vista del monitor (`/monitor/[tripId]`)
 
 Pantalla operativa en terreno, pensada para uso durante la gira:
@@ -152,6 +172,7 @@ REST convencional bajo `/api/v1`, protegido por los guards de `require-role.ts`,
 - `admin/programs/`, `admin/programs/[id]` — CRUD de programas; borrar valida que ninguna gira lo esté usando.
 - `admin/activity-templates/`, `announcement-templates/` — CRUD de plantillas.
 - `admin/imports/parse`, `admin/imports/commit` — soporte del importador masivo (§8): parsea el Excel subido y crea las giras confirmadas, fila por fila (un error en una fila no bloquea el resto del lote).
+- `admin/notifications` (GET: últimas 30 + contador de no leídas), `admin/notifications/seen` (POST: marca todo como visto) — ver §5.1.
 - `admin/schools/`, `admin/team/`, `admin/users/`, `admin/codes/`, `admin/reports/`, `admin/analytics/`, `admin/map/`, `admin/search/` — soporte de cada página admin correspondiente.
 - `auth/redeem` — canjea un `AccessCode` por una `TripMembership` (rate-limited).
 - `auth/claim-invite` — auto-reclamo de invitación pendiente al entrar a `/redeem`.
@@ -168,5 +189,6 @@ REST convencional bajo `/api/v1`, protegido por los guards de `require-role.ts`,
 - Acciones masivas (bulk actions) en Usuarios/Códigos.
 - Deduplicación/normalización de nombres de colegio (variantes de escritura crean `School` duplicados) — dejado a propósito por ahora.
 - Monitoreo de errores / observabilidad (tipo Sentry) — siguiente prioridad declarada, no iniciado.
+- Notificaciones fase 2 (detectadas por cron): gira en terreno sin señal GPS por X minutos, y gira próxima a partir sin monitor asignado. Requiere Vercel Cron — "sin señal" necesita el plan Pro (en Hobby los cron corren una vez al día).
 - Drag-and-drop para reordenar filas en el importador (`/admin/import`) — postergado, sin alcance definido todavía.
 - Paso a producción real (dominio propio, cuentas oficiales de Neon/Clerk/Vercel a nombre del cliente) — bloqueado esperando que el cliente entregue esos accesos.

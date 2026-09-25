@@ -7,6 +7,7 @@ import { prisma } from '@/lib/db'
 import { ApiError } from '@/lib/api/errors'
 import { requireAdmin, requireTripAccess } from '@/lib/api/require-role'
 import { withApiHandler } from '@/lib/api/handler'
+import { notifyInBackground, notifyTripStatusChanged } from '@/lib/notifications'
 
 export const GET = withApiHandler<{ tripId: string }>(async (_request, { params }) => {
   const { tripId } = await params
@@ -82,6 +83,10 @@ export const PATCH = withApiHandler<{ tripId: string }>(async (request, { params
       ...(totalDays !== undefined ? { totalDays } : {}),
     },
   })
+
+  if (role === 'MONITOR' && status !== undefined && status !== existing.status) {
+    notifyInBackground(() => notifyTripStatusChanged(trip, status))
+  }
 
   return NextResponse.json({ trip })
 })

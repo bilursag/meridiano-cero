@@ -3,6 +3,7 @@ import { cookies } from "next/headers"
 import { AppSidebar } from "@/components/app-sidebar"
 import { CommandMenu } from "@/components/command-menu"
 import { CommandMenuProvider } from "@/lib/command-menu-context"
+import { NotificationsProvider } from "@/lib/notifications-context"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
 
@@ -11,21 +12,23 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false"
 
   return (
-    <CommandMenuProvider>
-      <SidebarProvider
-        defaultOpen={defaultOpen}
-        style={
-          {
-            "--sidebar-width": "calc(var(--spacing) * 72)",
-            "--header-height": "calc(var(--spacing) * 12)",
-          } as React.CSSProperties
-        }
-      >
-        <AppSidebar variant="inset" />
-        <SidebarInset>{children}</SidebarInset>
-      </SidebarProvider>
-      <CommandMenu />
-      <Toaster position="top-right" richColors />
-    </CommandMenuProvider>
+    <NotificationsProvider>
+      <CommandMenuProvider>
+        <SidebarProvider
+          defaultOpen={defaultOpen}
+          style={
+            {
+              "--sidebar-width": "calc(var(--spacing) * 72)",
+              "--header-height": "calc(var(--spacing) * 12)",
+            } as React.CSSProperties
+          }
+        >
+          <AppSidebar variant="inset" />
+          <SidebarInset>{children}</SidebarInset>
+        </SidebarProvider>
+        <CommandMenu />
+        <Toaster position="top-right" richColors />
+      </CommandMenuProvider>
+    </NotificationsProvider>
   )
 }

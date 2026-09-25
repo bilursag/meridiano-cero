@@ -44,6 +44,12 @@ Cada grupo tiene una ficha con pestañas: **Resumen**, **Itinerario** (día por 
 
 Los itinerarios se arman a partir de **Programas**: plantillas reutilizables de actividades que se pueden aplicar a cualquier grupo. Así no hay que escribir el mismo itinerario cada vez que sale un grupo al mismo destino con el mismo programa.
 
+### Notificaciones
+
+La campana arriba a la derecha avisa cuando pasa algo importante en terreno: un coordinador reporta una **alerta** o un **logro**, un coordinador nuevo se une a un grupo, o un coordinador cambia el estado del grupo. El número rojo indica cuántas no has visto; al abrir la campana se marcan como vistas, y al hacer clic en una vas directo a la ficha del grupo.
+
+Las alertas además aparecen como un aviso rojo en pantalla apenas llegan (dentro de unos 30 segundos), aunque estés en otra sección del panel.
+
 ### Otras secciones útiles
 
 - **Equipo**: quiénes son administradores y quiénes son monitores en la plataforma.
