@@ -8,9 +8,17 @@ const isProtectedRoute = createRouteMatcher([
   '/api/v1(.*)',
 ])
 
-export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) await auth.protect()
-})
+export default clerkMiddleware(
+  async (auth, req) => {
+    if (isProtectedRoute(req)) await auth.protect()
+  },
+  {
+    // Production Clerk is served through /__clerk because its default host (clerk.<domain>) can't
+    // exist under vercel.app. Clerk only auto-enables this while the project's primary domain is a
+    // vercel.app one, so it is pinned via NEXT_PUBLIC_CLERK_PROXY_URL, which disables the auto mode.
+    frontendApiProxy: { enabled: Boolean(process.env.NEXT_PUBLIC_CLERK_PROXY_URL) },
+  }
+)
 
 export const config = {
   matcher: [
