@@ -50,6 +50,8 @@ La campana arriba a la derecha avisa cuando pasa algo importante en terreno: un 
 
 Las alertas además aparecen como un aviso rojo en pantalla apenas llegan (dentro de unos 30 segundos), aunque estés en otra sección del panel.
 
+Si la plataforma falla (por ejemplo, una página que no carga para un apoderado o coordinador), también aparece en la campana como **Error en el servidor** o **Error en el navegador**, con la página afectada. No hay que hacer nada con ellas en el panel: sirven para enterarse a tiempo y avisarle al equipo técnico, indicando la referencia (`ref.`) si aparece.
+
 ### Otras secciones útiles
 
 - **Equipo**: quiénes son administradores y quiénes son monitores en la plataforma.

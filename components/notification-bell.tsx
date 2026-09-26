@@ -5,7 +5,15 @@ import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 import type { NotificationType } from "@prisma/client"
-import { BellIcon, BellOffIcon, RefreshCwIcon, TriangleAlertIcon, TrophyIcon, UserPlusIcon } from "lucide-react"
+import {
+  BellIcon,
+  BellOffIcon,
+  RefreshCwIcon,
+  ServerCrashIcon,
+  TriangleAlertIcon,
+  TrophyIcon,
+  UserPlusIcon,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -18,6 +26,7 @@ const ICON_BY_TYPE: Record<NotificationType, { icon: React.ComponentType<{ class
   TRIP_ACHIEVEMENT: { icon: TrophyIcon, className: "text-amber-500" },
   MONITOR_JOINED: { icon: UserPlusIcon, className: "text-primary" },
   TRIP_STATUS_CHANGED: { icon: RefreshCwIcon, className: "text-muted-foreground" },
+  SYSTEM_ERROR: { icon: ServerCrashIcon, className: "text-destructive" },
 }
 
 export function NotificationBell() {

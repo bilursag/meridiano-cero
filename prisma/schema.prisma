@@ -38,6 +38,7 @@ enum NotificationType {
   TRIP_ACHIEVEMENT
   MONITOR_JOINED
   TRIP_STATUS_CHANGED
+  SYSTEM_ERROR
 }
 
 model School {

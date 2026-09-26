@@ -45,9 +45,18 @@ function uniqueConstraintMessage(error: Prisma.PrismaClientKnownRequestError): s
   return label ? `Ya existe un registro con ${label}.` : 'That value is already in use.'
 }
 
+function isUniqueConstraintError(error: unknown): error is Prisma.PrismaClientKnownRequestError {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002'
+}
+
+/** True for failures that are bugs or outages rather than an expected rejection of the request. */
+export function isUnexpectedError(error: unknown) {
+  return !(error instanceof ApiError) && !isUniqueConstraintError(error)
+}
+
 export function handleApiError(error: unknown) {
   if (error instanceof ApiError) return apiErrorResponse(error)
-  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+  if (isUniqueConstraintError(error)) {
     return apiErrorResponse(new ApiError('VALIDATION_ERROR', uniqueConstraintMessage(error)))
   }
   console.error(error)
