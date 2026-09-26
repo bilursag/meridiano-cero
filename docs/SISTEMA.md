@@ -54,7 +54,7 @@ Entidades sin relación directa en el diagrama:
 - `AnnouncementTemplate` — mensajes predefinidos que usa el monitor.
 - `ActivityTemplate` — actividades predefinidas para armar itinerarios.
 - `RedeemAttempt` — rate-limit del canje de códigos.
-- `Notification` — feed de notificaciones del panel admin (ver §5.1). `tripId` opcional, con borrado en cascada si se elimina la gira.
+- `Notification` — feed de notificaciones del panel admin (ver §5.1), incluidos los errores del sistema (§5.2). `tripId` opcional, con borrado en cascada si se elimina la gira.
 
 Puntos clave del modelo:
 
@@ -125,6 +125,18 @@ Los comunicados `INFO` (transiciones de itinerario) no generan notificación a p
 - **Creación** (`lib/notifications.ts`): cada endpoint llama a `notifyInBackground(...)`, que corre dentro de `after()` de Next — se ejecuta después de enviar la respuesta y un error ahí se loguea sin afectar la petición del monitor.
 - **Entrega**: polling cada 30 s desde `lib/notifications-context.tsx` (pausado con la pestaña oculta, refresco inmediato al volver). No hay WebSockets/SSE.
 
+### 5.2 Registro de errores
+
+Monitoreo de errores propio, sin servicio externo: cada error inesperado crea una notificación `SYSTEM_ERROR` ("Error en el servidor" / "Error en el navegador") en la misma campana de §5.1, con la ruta, el mensaje (máx. 300 caracteres) y, si existe, `ref. <digest>` para buscar el detalle en los logs de Vercel. `lib/error-reporting.ts` nunca lanza excepciones y descarta el mismo error si ya se reportó en la última hora.
+
+| Origen | Dónde se captura |
+|---|---|
+| Rutas de la API envueltas en `withApiHandler` | `lib/api/handler.ts` — solo errores inesperados; `ApiError` y `P2002` son respuestas esperadas y no se reportan |
+| Páginas, server actions y route handlers sin `withApiHandler` | `onRequestError` en `instrumentation.ts` (Next ya excluye `notFound()`/`redirect()`) |
+| Errores de render en el navegador | `app/error.tsx` y `app/global-error.tsx` (`components/error-fallback.tsx`) → `POST /api/v1/errors`. Los que traen `digest` vienen del servidor y no se reportan dos veces |
+
+Límites conocidos: solo reportan usuarios con sesión (el endpoint está bajo `/api/v1`); no captura errores en event handlers ni promesas sin manejar del navegador; y no detecta caídas que impiden cargar la app (como un proveedor externo caído) — para eso falta un chequeo de disponibilidad.
+
 ## 6. Vista del monitor (`/monitor/[tripId]`)
 
 Pantalla operativa en terreno, pensada para uso durante la gira:
@@ -173,6 +185,7 @@ REST convencional bajo `/api/v1`, protegido por los guards de `require-role.ts`,
 - `admin/activity-templates/`, `announcement-templates/` — CRUD de plantillas.
 - `admin/imports/parse`, `admin/imports/commit` — soporte del importador masivo (§8): parsea el Excel subido y crea las giras confirmadas, fila por fila (un error en una fila no bloquea el resto del lote).
 - `admin/notifications` (GET: últimas 30 + contador de no leídas), `admin/notifications/seen` (POST: marca todo como visto) — ver §5.1.
+- `errors` (POST, cualquier usuario autenticado: reporta un error del navegador) — ver §5.2.
 - `admin/schools/`, `admin/team/`, `admin/users/`, `admin/codes/`, `admin/reports/`, `admin/analytics/`, `admin/map/`, `admin/search/` — soporte de cada página admin correspondiente.
 - `auth/redeem` — canjea un `AccessCode` por una `TripMembership` (rate-limited).
 - `auth/claim-invite` — auto-reclamo de invitación pendiente al entrar a `/redeem`.
@@ -188,7 +201,7 @@ REST convencional bajo `/api/v1`, protegido por los guards de `require-role.ts`,
 - GPS en segundo plano en la app móvil — postergado hasta después de la primera aprobación en tiendas.
 - Acciones masivas (bulk actions) en Usuarios/Códigos.
 - Deduplicación/normalización de nombres de colegio (variantes de escritura crean `School` duplicados) — dejado a propósito por ahora.
-- Monitoreo de errores / observabilidad (tipo Sentry) — siguiente prioridad declarada, no iniciado.
+- Chequeo de disponibilidad (uptime) por cron — complementa el registro de errores de §5.2, que no ve caídas previas a cargar la app.
 - Notificaciones fase 2 (detectadas por cron): gira en terreno sin señal GPS por X minutos, y gira próxima a partir sin monitor asignado. Requiere Vercel Cron — "sin señal" necesita el plan Pro (en Hobby los cron corren una vez al día).
 - Drag-and-drop para reordenar filas en el importador (`/admin/import`) — postergado, sin alcance definido todavía.
 - Paso a producción real (dominio propio, cuentas oficiales de Neon/Clerk/Vercel a nombre del cliente) — bloqueado esperando que el cliente entregue esos accesos.
