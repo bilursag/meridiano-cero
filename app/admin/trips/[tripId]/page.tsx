@@ -61,6 +61,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { isTripTab } from '@/lib/notification-links'
 import { itineraryStatusLabels, announcementTypeLabels, tripStatusLabels, roleLabels } from '@/lib/labels'
 
 const MapView = dynamic(() => import('@/components/MapView'), { ssr: false })
@@ -94,7 +95,15 @@ export default function AdminTripDetailPage() {
   const { tripId } = useParams<{ tripId: string }>()
   const searchParams = useSearchParams()
   const autoEditTriggered = useRef(false)
-  const [activeTab, setActiveTab] = useState('resumen')
+  // ?tab= opens a specific tab (links from notifications); following another such link while
+  // already on this page switches tabs without a remount.
+  const tabParam = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState<string>(isTripTab(tabParam) ? tabParam : 'resumen')
+  const [appliedTabParam, setAppliedTabParam] = useState(tabParam)
+  if (tabParam !== appliedTabParam) {
+    setAppliedTabParam(tabParam)
+    if (isTripTab(tabParam)) setActiveTab(tabParam)
+  }
   const [trip, setTrip] = useState<TripDetail | null>(null)
   const [itinerary, setItinerary] = useState<ItineraryItem[]>([])
   const [announcements, setAnnouncements] = useState<Announcement[]>([])

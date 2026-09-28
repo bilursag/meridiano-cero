@@ -4,6 +4,7 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import type { Notification } from "@prisma/client"
+import { notificationHref } from "@/lib/notification-links"
 
 export type AdminNotification = Omit<Notification, "createdAt"> & { createdAt: string }
 
@@ -38,12 +39,11 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
         (n) => n.type === "TRIP_ALERT" && !knownIds.current!.has(n.id)
       )
       for (const alert of newAlerts) {
+        const href = notificationHref(alert)
         toast.error(alert.title, {
           description: alert.body,
           duration: 10_000,
-          action: alert.tripId
-            ? { label: "Ver grupo", onClick: () => router.push(`/admin/trips/${alert.tripId}`) }
-            : undefined,
+          action: href ? { label: "Ver grupo", onClick: () => router.push(href) } : undefined,
         })
       }
     }
