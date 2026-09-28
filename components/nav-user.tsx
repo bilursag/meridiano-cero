@@ -1,12 +1,16 @@
 "use client"
 
+import Link from "next/link"
 import {
-  IconCreditCard,
+  IconDeviceDesktop,
   IconDotsVertical,
   IconLogout,
+  IconMoon,
   IconNotification,
+  IconSun,
   IconUserCircle,
 } from "@tabler/icons-react"
+import { useTheme } from "next-themes"
 import { useUser, useClerk } from "@clerk/nextjs"
 
 import {
@@ -20,7 +24,13 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -29,6 +39,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useOptionalNotifications } from "@/lib/notifications-context"
+
+const THEME_OPTIONS = [
+  { value: "light", label: "Claro", icon: IconSun },
+  { value: "dark", label: "Oscuro", icon: IconMoon },
+  { value: "system", label: "Sistema", icon: IconDeviceDesktop },
+] as const
 
 export function NavUser({
   user: fallbackUser,
@@ -42,6 +59,9 @@ export function NavUser({
   const { isMobile } = useSidebar()
   const { user } = useUser()
   const { signOut } = useClerk()
+  const unreadCount = useOptionalNotifications()?.unreadCount ?? 0
+  const { theme, resolvedTheme, setTheme } = useTheme()
+  const ThemeIcon = resolvedTheme === "dark" ? IconMoon : IconSun
 
   const name = user?.fullName ?? fallbackUser?.name ?? "Administrador"
   const email = user?.primaryEmailAddress?.emailAddress ?? fallbackUser?.email ?? ""
@@ -93,17 +113,40 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <IconUserCircle />
-                Cuenta
+              <DropdownMenuItem asChild>
+                <Link href="/admin/settings">
+                  <IconUserCircle />
+                  Cuenta
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconCreditCard />
-                Facturación
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconNotification />
-                Notificaciones
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <ThemeIcon />
+                  Tema
+                </DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuRadioGroup value={theme ?? "system"} onValueChange={setTheme}>
+                      {THEME_OPTIONS.map(({ value, label, icon: Icon }) => (
+                        <DropdownMenuRadioItem key={value} value={value} className="gap-2 [&_svg]:size-4">
+                          <Icon />
+                          {label}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
+              <DropdownMenuItem asChild>
+                <Link href="/admin/notifications">
+                  <IconNotification />
+                  Notificaciones
+                  {unreadCount > 0 ? (
+                    <span className="ml-auto rounded-full bg-destructive px-1.5 text-[10px] font-medium leading-4 text-white">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  ) : null}
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
