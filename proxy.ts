@@ -13,9 +13,9 @@ export default clerkMiddleware(
     if (isProtectedRoute(req)) await auth.protect()
   },
   {
-    // Production Clerk is served through /__clerk because its default host (clerk.<domain>) can't
-    // exist under vercel.app. Clerk only auto-enables this while the project's primary domain is a
-    // vercel.app one, so it is pinned via NEXT_PUBLIC_CLERK_PROXY_URL, which disables the auto mode.
+    // Production Clerk is served through /__clerk on app.meridianocero.cl (NEXT_PUBLIC_CLERK_PROXY_URL,
+    // set only in Production), so its Frontend API needs no clerk.<domain> DNS record. Setting that
+    // variable disables Clerk's vercel.app auto-proxy, hence the explicit flag.
     frontendApiProxy: { enabled: Boolean(process.env.NEXT_PUBLIC_CLERK_PROXY_URL) },
   }
 )
