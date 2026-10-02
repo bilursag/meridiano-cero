@@ -134,6 +134,21 @@ describe('parsePlanningWorkbook', () => {
       expect(row.startDate?.slice(0, 10)).toBe('2025-12-01')
     })
 
+    it('stores the date as midnight in Chile, so it does not show a day early', () => {
+      const buffer = buildWorkbook({ 'Hoja 1': [HEADER, dataRow({ in: 45992, out: 45996 })] })
+      const row = parsePlanningWorkbook(buffer).rows[0]
+      expect(row.startDate).toBe('2025-12-01T03:00:00.000Z')
+      expect(row.endDate).toBe('2025-12-05T03:00:00.000Z')
+      expect(row.totalDays).toBe(5)
+    })
+
+    it('reads text dates in Chilean day/month/year order', () => {
+      const buffer = buildWorkbook({ 'Hoja 1': [HEADER, dataRow({ in: '05/10/2026', out: '9-10-2026' })] })
+      const row = parsePlanningWorkbook(buffer).rows[0]
+      expect(row.startDate).toBe('2026-10-05T03:00:00.000Z')
+      expect(row.endDate).toBe('2026-10-09T03:00:00.000Z')
+    })
+
     it('warns when the date range is unusually long', () => {
       const buffer = buildWorkbook({ 'Hoja 1': [HEADER, dataRow({ in: 45992, out: 46363 })] })
       const row = parsePlanningWorkbook(buffer).rows[0]

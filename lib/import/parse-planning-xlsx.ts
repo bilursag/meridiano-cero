@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx'
+import { chileDaysBetween, chileMidnight, chileMidnightFromKey } from '@/lib/dates'
 
 /**
  * Parses the ops team's "Bulk plataforma meridiano" template into candidate
@@ -72,16 +73,37 @@ function findColumnIndex(headerRow: unknown[], candidates: string[], exact = fal
   return -1
 }
 
+const DAY_MS = 86400 * 1000
+
+/** Chile midnight of the calendar date nearest to `date` in UTC (absorbs SheetJS's few-seconds drift). */
+function nearestChileMidnight(date: Date): Date {
+  const nearest = new Date(date.getTime() + DAY_MS / 2)
+  return chileMidnight(nearest.getUTCFullYear(), nearest.getUTCMonth() + 1, nearest.getUTCDate())
+}
+
+/**
+ * Returns the typed calendar date as Chile midnight, the same instant a date picker in the panel
+ * produces. Returning UTC midnight instead made imported trips show one day early in Chile.
+ */
 function parseExcelDate(value: unknown): Date | null {
-  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : nearestChileMidnight(value)
   if (typeof value === 'number' && Number.isFinite(value)) {
     const utcDays = Math.floor(value - 25569)
-    const date = new Date(utcDays * 86400 * 1000)
-    return Number.isNaN(date.getTime()) ? null : date
+    const date = new Date(utcDays * DAY_MS)
+    return Number.isNaN(date.getTime()) ? null : nearestChileMidnight(date)
   }
   if (typeof value === 'string' && value.trim()) {
-    const date = new Date(value.trim())
-    if (!Number.isNaN(date.getTime())) return date
+    const text = value.trim()
+    // Chilean order: day/month/year (JavaScript would read 05/10/2026 as May 10).
+    const dmy = text.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/)
+    if (dmy) {
+      const key = `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`
+      return chileMidnightFromKey(key)
+    }
+    const iso = chileMidnightFromKey(text.slice(0, 10))
+    if (iso && /^\d{4}-\d{2}-\d{2}/.test(text)) return iso
+    const date = new Date(text)
+    if (!Number.isNaN(date.getTime())) return nearestChileMidnight(date)
   }
   return null
 }
@@ -177,7 +199,7 @@ export function parsePlanningWorkbook(buffer: ArrayBuffer): ParsedImportResult {
 
       let totalDays: number | null = null
       if (startDate && endDate) {
-        totalDays = Math.round((endDate.getTime() - startDate.getTime()) / 86400000) + 1
+        totalDays = chileDaysBetween(startDate, endDate) + 1
         if (totalDays < 1) warnings.push('La fecha de término es anterior a la de inicio')
         else if (totalDays > 30) warnings.push('Rango de fechas inusualmente largo — revisar')
       }
