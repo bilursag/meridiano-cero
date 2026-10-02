@@ -17,11 +17,11 @@ import {
   UsersIcon,
 } from 'lucide-react'
 import { DaySortableList } from '@/components/day-sortable-list'
+import { EditTripSheet } from '@/components/edit-trip-sheet'
 import type { DayItemChange } from '@/lib/day-reorder'
-import { addDays, differenceInCalendarDays, format } from 'date-fns'
+import { addDays, format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
-import type { DateRange } from 'react-day-picker'
 import type {
   AccessCode,
   ActivityTemplate,
@@ -41,7 +41,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Combobox } from '@/components/ui/combobox'
-import { DateRangePicker } from '@/components/date-range-picker'
 import {
   Dialog,
   DialogContent,
@@ -78,7 +77,6 @@ function dayDate(startDate: string | Date, dayNumber: number) {
   return addDays(new Date(startDate), dayNumber - 1)
 }
 
-const EMPTY_EDIT_FORM = { name: '', destination: '', studentCount: '', hotel: '' }
 const EMPTY_MONITOR_FORM = { firstName: '', lastName: '', emailAddress: '' }
 
 export default function AdminTripDetailPage() {
@@ -110,10 +108,6 @@ export default function AdminTripDetailPage() {
   )
   const [credentialsCopied, setCredentialsCopied] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
-  const [editForm, setEditForm] = useState(EMPTY_EDIT_FORM)
-  const [editDateRange, setEditDateRange] = useState<DateRange | undefined>()
-  const [savingEdit, setSavingEdit] = useState(false)
-  const [editError, setEditError] = useState<string | null>(null)
   const [itineraryOpen, setItineraryOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<ActivityItemEditing | null>(null)
   const [activityTemplates, setActivityTemplates] = useState<ActivityTemplate[]>([])
@@ -179,16 +173,7 @@ export default function AdminTripDetailPage() {
   }
 
   function openEditDialog() {
-    if (!trip) return
-    setEditForm({
-      name: trip.name,
-      destination: trip.destination,
-      studentCount: String(trip.studentCount),
-      hotel: trip.hotel ?? '',
-    })
-    setEditDateRange({ from: new Date(trip.startDate), to: new Date(trip.endDate) })
-    setEditError(null)
-    setEditOpen(true)
+    if (trip) setEditOpen(true)
   }
 
   useEffect(() => {
@@ -199,33 +184,12 @@ export default function AdminTripDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trip, searchParams])
 
-  async function handleSaveEdit() {
-    if (!editDateRange?.from || !editDateRange?.to) return
-    setSavingEdit(true)
-    setEditError(null)
-    const res = await fetch(`/api/v1/trips/${tripId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: editForm.name,
-        destination: editForm.destination,
-        studentCount: Number(editForm.studentCount),
-        hotel: editForm.hotel.trim() || null,
-        startDate: editDateRange.from.toISOString(),
-        endDate: editDateRange.to.toISOString(),
-      }),
-    })
-    setSavingEdit(false)
-    if (res.ok) {
-      setTrip((await res.json()).trip)
-      setEditOpen(false)
-      toast.success('Grupo actualizado.')
-    } else {
-      const data = await res.json().catch(() => null)
-      const message = data?.error?.message ?? 'No se pudo guardar el grupo.'
-      setEditError(message)
-      toast.error(message)
-    }
+  function handleTripSaved(saved: TripDetail) {
+    setTrip(saved)
+    setEditOpen(false)
+    toast.success('Grupo actualizado.')
+    // Dates or the program may have changed what the itinerary tab shows.
+    void load()
   }
 
   async function handleAddCode(role: Role) {
@@ -488,79 +452,15 @@ export default function AdminTripDetailPage() {
 
   return (
     <>
+      <EditTripSheet trip={trip} open={editOpen} onOpenChange={setEditOpen} onSaved={handleTripSaved} />
       <SiteHeader
         title={trip.name}
         subtitle={trip.school.name}
         right={
-          <Dialog open={editOpen} onOpenChange={setEditOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="xs" onClick={openEditDialog}>
-                <PencilIcon />
-                Editar grupo
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Editar grupo</DialogTitle>
-              </DialogHeader>
-              <div className="flex flex-col gap-4">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="edit-name">Nombre del grupo</Label>
-                    <Input
-                      id="edit-name"
-                      value={editForm.name}
-                      onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="edit-destination">Destino</Label>
-                    <Input
-                      id="edit-destination"
-                      value={editForm.destination}
-                      onChange={(e) => setEditForm((p) => ({ ...p, destination: e.target.value }))}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="edit-student-count">N° de alumnos</Label>
-                    <Input
-                      id="edit-student-count"
-                      type="number"
-                      value={editForm.studentCount}
-                      onChange={(e) => setEditForm((p) => ({ ...p, studentCount: e.target.value }))}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="edit-hotel">Hotel</Label>
-                    <Input
-                      id="edit-hotel"
-                      value={editForm.hotel}
-                      onChange={(e) => setEditForm((p) => ({ ...p, hotel: e.target.value }))}
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label>Fechas del grupo</Label>
-                  <DateRangePicker value={editDateRange} onChange={setEditDateRange} />
-                  {editDateRange?.from && editDateRange?.to ? (
-                    <p className="text-xs text-muted-foreground">
-                      Duración: {differenceInCalendarDays(editDateRange.to, editDateRange.from) + 1} día
-                      {differenceInCalendarDays(editDateRange.to, editDateRange.from) + 1 === 1 ? '' : 's'}
-                    </p>
-                  ) : null}
-                </div>
-                {editError ? <p className="text-sm text-destructive">{editError}</p> : null}
-              </div>
-              <DialogFooter>
-                <Button
-                  onClick={handleSaveEdit}
-                  disabled={savingEdit || !editDateRange?.from || !editDateRange?.to}
-                >
-                  {savingEdit ? 'Guardando…' : 'Guardar cambios'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button variant="outline" size="xs" onClick={openEditDialog}>
+            <PencilIcon />
+            Editar grupo
+          </Button>
         }
       />
       <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
