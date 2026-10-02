@@ -61,6 +61,7 @@ Puntos clave del modelo:
 - **`Trip.programId` es obligatorio.** Toda gira nace de un `Program` (plantilla de itinerario reutilizable); no existen giras "desde cero". El `Program` no puede borrarse mientras alguna `Trip` lo referencie (`onDelete: Restrict`, con mensaje de error explícito en la API).
 - **Copiar, no enlazar.** Al crear una gira o aplicar un programa a una gira existente, los `ProgramItem` se copian como `ItineraryItem` nuevos. Editar el programa después no reescribe giras que ya lo aplicaron — el programa es un punto de partida, no una fuente viva.
 - **`AccessCode`** es el mecanismo de invitación: un código único por rol y gira; canjearlo crea una `TripMembership`. Rate-limited (10 intentos / 15 min por usuario) vía `RedeemAttempt`.
+- **`Trip.currentDay` se calcula al leer**, no se guarda: una extensión del cliente Prisma (`lib/db.ts`) lo deriva de `startDate` y `totalDays` contando días calendario en Chile (`lib/dates.ts`), acotado a 1..`totalDays`. La columna existe pero no se actualiza. Las fechas de una gira se guardan como medianoche en Chile.
 - **`AdminUser`** es una tabla aparte de `TripMembership` — un admin no "pertenece" a ninguna gira, tiene acceso a todas.
 - **Campos de `Trip` en inglés** (`groupNumber`, `grade`, `salesExecutive`) aunque el resto de la planilla operativa y la UI los muestren en español ("N° Grupo", "Curso", "Ejecutivo") — es una convención de nombres de código, no afecta lo que ve el usuario.
 
@@ -92,7 +93,7 @@ Sidebar con estas secciones (`components/app-sidebar.tsx`):
 - **Mapa operativo** (`/admin/map`) — Todas las giras en terreno, ubicación en tiempo real sobre un mapa, con los mismos filtros globales que Giras.
 - **Equipo** (`/admin/team`) — Administradores y monitores de la plataforma, con búsqueda y filtros globales (Grupo/Colegio/Destino/Ejecutivo) en la pestaña de monitores.
 - **Usuarios** (`/admin/users`) — Todas las cuentas registradas (tabla), independiente de a qué gira pertenecen, con filtros globales.
-- **Reportes** (`/admin/reports`) — Alertas y logros (`Announcement` tipo `ALERT`/`ACHIEVEMENT`) reportados en terreno, filtrables por tipo, colegio y filtros globales, exportables a CSV.
+- **Reportes** (`/admin/reports`) — Alertas y logros (`Announcement` tipo `ALERT`/`ACHIEVEMENT`) reportados en terreno, filtrables por tipo, colegio y filtros globales. "Exportar grupos" genera un `.xlsx` en el navegador (`lib/export-trips.ts`, con fechas como número de día de Excel para que no se corran).
 - **Colegios** (`/admin/schools`) — Tabla de `School`: giras totales, en terreno, alumnos.
 - **Códigos** (`/admin/codes`) — Códigos de acceso para apoderados y monitores, con búsqueda por texto, filtro por rol y filtros globales (Grupo/Colegio/Destino/Ejecutivo).
 - **Mensajes** (`/admin/messages`) — CRUD de `AnnouncementTemplate` — plantillas que el monitor puede enviar sin redactar texto libre.
@@ -170,6 +171,7 @@ Crea giras en bloque a partir de la planilla que usa el equipo de operaciones ("
 - **Códigos de acceso**: se generan automáticamente 3 códigos por grupo — apoderado, monitor y alumno — con el mismo generador que usa el formulario manual.
 - **Itinerario**: una vez mapeado el código de programa a un `Program`, sus actividades se copian automáticamente como itinerario del grupo nuevo.
 - **PAX**: el total de alumnos se calcula como Alumnos Femenino + Alumnos Masculino de la planilla (el template no trae una columna de "N° PAX" manual independiente).
+- **Fechas**: se guardan como medianoche en Chile (`lib/dates.ts`), igual que el selector de fechas del panel; las fechas escritas como texto se leen día/mes/año.
 - **Validación**: se marca advertencia automática si faltan alumnos, código de programa o destino reconocible, o si las fechas son inválidas o el rango es inusualmente largo (>30 días) — esas filas quedan desmarcadas por defecto para no importarlas sin revisar.
 
 **Requiere una acción manual del administrador:**
