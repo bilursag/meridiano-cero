@@ -17,7 +17,7 @@ export const GET = withApiHandler<{ tripId: string }>(async (_request, { params 
     where: { id: tripId },
     include: { school: { select: { name: true } }, legs: { orderBy: { order: 'asc' } } },
   })
-  if (!trip) throw new ApiError('NOT_FOUND', 'Trip not found.')
+  if (!trip) throw new ApiError('NOT_FOUND', 'No se encontró el grupo.')
 
   return NextResponse.json({ trip })
 })
@@ -38,29 +38,29 @@ export const PATCH = withApiHandler<{ tripId: string }>(async (request, { params
 
   const json = await request.json().catch(() => null)
   const parsed = patchSchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Invalid trip update payload.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Los cambios del grupo no son válidos.')
 
   const { status, startDate, endDate, ...detailFields } = parsed.data
   const hasDetailFields = startDate !== undefined || endDate !== undefined || Object.keys(detailFields).length > 0
 
   if (hasDetailFields && role !== 'ADMIN') {
-    throw new ApiError('FORBIDDEN', 'Only admins can edit trip details.')
+    throw new ApiError('FORBIDDEN', 'Solo un administrador puede editar los datos del grupo.')
   }
   if (status !== undefined && role !== 'ADMIN' && role !== 'MONITOR') {
-    throw new ApiError('FORBIDDEN', 'Only monitors or admins can update trip status.')
+    throw new ApiError('FORBIDDEN', 'Solo coordinadores y administradores pueden cambiar el estado del grupo.')
   }
   if (!hasDetailFields && status === undefined) {
-    throw new ApiError('VALIDATION_ERROR', 'Nothing to update.')
+    throw new ApiError('VALIDATION_ERROR', 'No hay cambios para guardar.')
   }
 
   const existing = await prisma.trip.findUnique({
     where: { id: tripId },
     select: { status: true, startDate: true, endDate: true },
   })
-  if (!existing) throw new ApiError('NOT_FOUND', 'Trip not found.')
+  if (!existing) throw new ApiError('NOT_FOUND', 'No se encontró el grupo.')
 
   if (status !== undefined && existing.status === 'FINISHED' && status !== 'FINISHED') {
-    throw new ApiError('VALIDATION_ERROR', 'Finished trips cannot change status.')
+    throw new ApiError('VALIDATION_ERROR', 'Un grupo finalizado no puede cambiar de estado.')
   }
 
   let totalDays: number | undefined
@@ -68,7 +68,7 @@ export const PATCH = withApiHandler<{ tripId: string }>(async (request, { params
     const effectiveStart = startDate !== undefined ? new Date(startDate) : existing.startDate
     const effectiveEnd = endDate !== undefined ? new Date(endDate) : existing.endDate
     if (effectiveEnd < effectiveStart) {
-      throw new ApiError('VALIDATION_ERROR', 'endDate must be on or after startDate.')
+      throw new ApiError('VALIDATION_ERROR', 'La fecha de término debe ser igual o posterior a la de inicio.')
     }
     totalDays = differenceInCalendarDays(effectiveEnd, effectiveStart) + 1
   }
@@ -96,7 +96,7 @@ export const DELETE = withApiHandler<{ tripId: string }>(async (_request, { para
   const { tripId } = await params
 
   const trip = await prisma.trip.findUnique({ where: { id: tripId } })
-  if (!trip) throw new ApiError('NOT_FOUND', 'Trip not found.')
+  if (!trip) throw new ApiError('NOT_FOUND', 'No se encontró el grupo.')
 
   const [itineraryPhotos, announcementPhotos] = await Promise.all([
     prisma.itineraryItem.findMany({ where: { tripId, photoUrl: { not: null } }, select: { photoUrl: true } }),

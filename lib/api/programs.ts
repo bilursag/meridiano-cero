@@ -10,8 +10,8 @@ export async function applyProgramToTrip(tripId: string, programId: string) {
     where: { id: programId },
     include: { items: { orderBy: [{ dayNumber: 'asc' }, { order: 'asc' }] } },
   })
-  if (!program) throw new ApiError('NOT_FOUND', 'Program not found.')
-  if (program.items.length === 0) throw new ApiError('VALIDATION_ERROR', 'This program has no items yet.')
+  if (!program) throw new ApiError('NOT_FOUND', 'No se encontró el programa.')
+  if (program.items.length === 0) throw new ApiError('VALIDATION_ERROR', 'Este programa aún no tiene actividades.')
 
   const last = await prisma.itineraryItem.findFirst({ where: { tripId }, orderBy: { order: 'desc' } })
   let nextOrder = (last?.order ?? -1) + 1
@@ -45,7 +45,7 @@ export async function duplicateProgram(programId: string) {
     where: { id: programId },
     include: { items: { orderBy: [{ dayNumber: 'asc' }, { order: 'asc' }] } },
   })
-  if (!program) throw new ApiError('NOT_FOUND', 'Program not found.')
+  if (!program) throw new ApiError('NOT_FOUND', 'No se encontró el programa.')
 
   return prisma.program.create({
     data: {

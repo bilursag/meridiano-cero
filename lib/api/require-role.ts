@@ -5,7 +5,7 @@ import { ApiError } from '@/lib/api/errors'
 
 async function requireClerkUserId(): Promise<string> {
   const { userId } = await auth()
-  if (!userId) throw new ApiError('UNAUTHENTICATED', 'You must be signed in.')
+  if (!userId) throw new ApiError('UNAUTHENTICATED', 'Debes iniciar sesión.')
   return userId
 }
 
@@ -25,7 +25,7 @@ export async function requireTripWrite(tripId: string, roles: Role[]) {
   const membership = await prisma.tripMembership.findFirst({
     where: { clerkUserId, tripId, role: { in: roles } },
   })
-  if (!membership) throw new ApiError('FORBIDDEN', 'You do not have access to this trip.')
+  if (!membership) throw new ApiError('FORBIDDEN', 'No tienes acceso a este grupo.')
 
   return { clerkUserId, role: membership.role }
 }
@@ -34,7 +34,7 @@ export async function requireAdmin() {
   const clerkUserId = await requireClerkUserId()
 
   const admin = await prisma.adminUser.findUnique({ where: { clerkUserId } })
-  if (!admin) throw new ApiError('FORBIDDEN', 'Admin access required.')
+  if (!admin) throw new ApiError('FORBIDDEN', 'Se requiere acceso de administrador.')
 
   return { clerkUserId }
 }
@@ -47,7 +47,7 @@ export async function requireTripAccess(tripId: string) {
   if (admin) return { clerkUserId, role: 'ADMIN' as const }
 
   const membership = await prisma.tripMembership.findFirst({ where: { clerkUserId, tripId } })
-  if (!membership) throw new ApiError('FORBIDDEN', 'You do not have access to this trip.')
+  if (!membership) throw new ApiError('FORBIDDEN', 'No tienes acceso a este grupo.')
 
   return { clerkUserId, role: membership.role }
 }

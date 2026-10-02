@@ -21,11 +21,11 @@ function parseRange(fromParam: string | null, toParam: string | null): { start: 
   const start = fromParam && !Number.isNaN(Date.parse(fromParam)) ? new Date(fromParam) : defaultStart
   const end = toParam && !Number.isNaN(Date.parse(toParam)) ? new Date(toParam) : defaultEnd
 
-  if (end < start) throw new ApiError('VALIDATION_ERROR', 'to must be on or after from.')
+  if (end < start) throw new ApiError('VALIDATION_ERROR', 'La fecha final debe ser igual o posterior a la inicial.')
 
   const rangeDays = (end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)
   if (rangeDays > MAX_RANGE_DAYS) {
-    throw new ApiError('VALIDATION_ERROR', `Range too large: max ${MAX_RANGE_DAYS} days.`)
+    throw new ApiError('VALIDATION_ERROR', `El rango es demasiado largo: máximo ${MAX_RANGE_DAYS} días.`)
   }
 
   return { start, end }

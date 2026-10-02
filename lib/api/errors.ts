@@ -42,7 +42,7 @@ function uniqueConstraintMessage(error: Prisma.PrismaClientKnownRequestError): s
   const target = error.meta?.target
   const fields = Array.isArray(target) ? target : typeof target === 'string' ? [target] : []
   const label = fields.map((field) => UNIQUE_FIELD_LABELS[field]).find(Boolean)
-  return label ? `Ya existe un registro con ${label}.` : 'That value is already in use.'
+  return label ? `Ya existe un registro con ${label}.` : 'Ese valor ya está en uso.'
 }
 
 function isUniqueConstraintError(error: unknown): error is Prisma.PrismaClientKnownRequestError {
@@ -61,7 +61,7 @@ export function handleApiError(error: unknown) {
   }
   console.error(error)
   return NextResponse.json(
-    { error: { code: 'INTERNAL_ERROR', message: 'Unexpected server error.' } },
+    { error: { code: 'INTERNAL_ERROR', message: 'Ocurrió un error inesperado en el servidor.' } },
     { status: 500 }
   )
 }

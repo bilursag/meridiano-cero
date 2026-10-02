@@ -20,7 +20,7 @@ function isPendingTripInvite(value: unknown): value is PendingTripInvite {
 /** Grants access if the signed-in user accepted an invitation created with pendingAdminInvite or pendingTripInvite metadata. */
 export const POST = withApiHandler(async () => {
   const user = await currentUser()
-  if (!user) throw new ApiError('UNAUTHENTICATED', 'You must be signed in.')
+  if (!user) throw new ApiError('UNAUTHENTICATED', 'Debes iniciar sesión.')
 
   const pendingAdminInvite = user.publicMetadata.pendingAdminInvite === true
   const pendingTripInvite = isPendingTripInvite(user.publicMetadata.pendingTripInvite)

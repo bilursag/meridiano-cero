@@ -14,28 +14,28 @@ const RATE_LIMIT_MAX_ATTEMPTS = 10
 
 export const POST = withApiHandler(async (request) => {
   const { userId: clerkUserId } = await auth()
-  if (!clerkUserId) throw new ApiError('UNAUTHENTICATED', 'You must be signed in.')
+  if (!clerkUserId) throw new ApiError('UNAUTHENTICATED', 'Debes iniciar sesión.')
 
   const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_MS)
   const recentAttempts = await prisma.redeemAttempt.count({
     where: { clerkUserId, createdAt: { gte: windowStart } },
   })
   if (recentAttempts >= RATE_LIMIT_MAX_ATTEMPTS) {
-    throw new ApiError('RATE_LIMITED', 'Too many code attempts. Try again later.')
+    throw new ApiError('RATE_LIMITED', 'Demasiados intentos con códigos. Intenta de nuevo más tarde.')
   }
   await prisma.redeemAttempt.create({ data: { clerkUserId } })
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
   if (!parsed.success) {
-    throw new ApiError('VALIDATION_ERROR', 'A trip code is required.')
+    throw new ApiError('VALIDATION_ERROR', 'Ingresa un código.')
   }
 
   const code = parsed.data.code.toUpperCase()
 
   const accessCode = await prisma.accessCode.findUnique({ where: { code } })
   if (!accessCode) {
-    throw new ApiError('NOT_FOUND', 'Invalid access code.')
+    throw new ApiError('NOT_FOUND', 'El código no es válido.')
   }
 
   // createMany + skipDuplicates instead of upsert so we know whether this is a new membership.

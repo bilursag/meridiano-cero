@@ -28,9 +28,9 @@ describe('ApiError / apiErrorResponse', () => {
 
 describe('handleApiError', () => {
   it('passes ApiError instances straight through to apiErrorResponse', async () => {
-    const res = handleApiError(new ApiError('NOT_FOUND', 'Program not found.'))
+    const res = handleApiError(new ApiError('NOT_FOUND', 'No se encontró el programa.'))
     expect(res.status).toBe(404)
-    expect((await res.json()).error.message).toBe('Program not found.')
+    expect((await res.json()).error.message).toBe('No se encontró el programa.')
   })
 
   it('translates a P2002 unique constraint on a known field into a friendly Spanish message', async () => {
@@ -44,7 +44,7 @@ describe('handleApiError', () => {
   it('falls back to a generic message for a P2002 on an unmapped field', async () => {
     const res = handleApiError(prismaUniqueError(['someUnmappedField']))
     const body = await res.json()
-    expect(body.error.message).toBe('That value is already in use.')
+    expect(body.error.message).toBe('Ese valor ya está en uso.')
   })
 
   it('handles a string target the same as an array target', async () => {

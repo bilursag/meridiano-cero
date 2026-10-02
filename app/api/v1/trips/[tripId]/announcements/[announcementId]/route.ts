@@ -13,7 +13,7 @@ export const DELETE = withApiHandler<{ tripId: string; announcementId: string }>
 
     const announcement = await prisma.announcement.findUnique({ where: { id: announcementId } })
     if (!announcement || announcement.tripId !== tripId) {
-      throw new ApiError('NOT_FOUND', 'Announcement not found.')
+      throw new ApiError('NOT_FOUND', 'No se encontró el comunicado.')
     }
 
     if (announcement.photoUrl) {
