@@ -21,6 +21,7 @@ import { EmptyState } from '@/components/empty-state'
 import { FetchError } from '@/components/fetch-error'
 import { GlobalFilters } from '@/components/global-filters'
 import { announcementTypeLabels } from '@/lib/labels'
+import { downloadTripsXlsx } from '@/lib/export-trips'
 import type { TripRow } from '@/components/data-table'
 
 type ReportRow = Announcement & { trip: { id: string; name: string; school: { name: string } } }
@@ -29,29 +30,6 @@ const TYPE_BADGE_VARIANT: Record<AnnouncementType, 'destructive' | 'secondary' |
   ALERT: 'destructive',
   ACHIEVEMENT: 'secondary',
   INFO: 'outline',
-}
-
-function downloadCsv(trips: TripRow[]) {
-  const header = ['Nombre', 'Colegio', 'Destino', 'Ejecutivo', 'Estado', 'Día', 'Alumnos', 'Inicio', 'Término']
-  const rows = trips.map((trip) => [
-    trip.name,
-    trip.school.name,
-    trip.destination,
-    trip.salesExecutive ?? '',
-    trip.status,
-    `${trip.currentDay}/${trip.totalDays}`,
-    trip.studentCount,
-    new Date(trip.startDate).toLocaleDateString('es-CL'),
-    new Date(trip.endDate).toLocaleDateString('es-CL'),
-  ])
-  const csv = [header, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n')
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `grupos-${new Date().toISOString().slice(0, 10)}.csv`
-  link.click()
-  URL.revokeObjectURL(url)
 }
 
 export default function AdminReportsPage() {
@@ -147,9 +125,9 @@ export default function AdminReportsPage() {
         title="Reportes"
         subtitle="Alertas y logros reportados en terreno"
         right={
-          <Button variant="outline" size="xs" onClick={() => downloadCsv(trips)} disabled={!trips.length}>
+          <Button variant="outline" size="xs" onClick={() => void downloadTripsXlsx(trips)} disabled={!trips.length}>
             <DownloadIcon />
-            Exportar grupos (CSV)
+            Exportar grupos (Excel)
           </Button>
         }
       />
