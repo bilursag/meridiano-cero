@@ -7,7 +7,7 @@ import { withApiHandler } from '@/lib/api/handler'
 
 async function findProgramItem(programId: string, itemId: string) {
   const item = await prisma.programItem.findUnique({ where: { id: itemId } })
-  if (!item || item.programId !== programId) throw new ApiError('NOT_FOUND', 'Program item not found.')
+  if (!item || item.programId !== programId) throw new ApiError('NOT_FOUND', 'No se encontró la actividad del programa.')
   return item
 }
 
@@ -27,8 +27,8 @@ export const PATCH = withApiHandler<{ id: string; itemId: string }>(async (reque
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Invalid program item update payload.')
-  if (Object.keys(parsed.data).length === 0) throw new ApiError('VALIDATION_ERROR', 'Nothing to update.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Los cambios de la actividad no son válidos.')
+  if (Object.keys(parsed.data).length === 0) throw new ApiError('VALIDATION_ERROR', 'No hay cambios para guardar.')
 
   await findProgramItem(programId, itemId)
 

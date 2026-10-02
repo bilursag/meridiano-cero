@@ -37,7 +37,7 @@ const rowSchema = z
       .optional(),
   })
   .refine((data) => new Date(data.endDate) >= new Date(data.startDate), {
-    message: 'endDate must be on or after startDate.',
+    message: 'La fecha de término debe ser igual o posterior a la de inicio.',
     path: ['endDate'],
   })
 
@@ -48,7 +48,7 @@ export const POST = withApiHandler(async (request) => {
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Missing or invalid import rows.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan filas para importar o no son válidas.')
 
   const results: { key: string; success: boolean; tripId?: string; error?: string }[] = []
 

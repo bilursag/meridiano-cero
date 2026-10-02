@@ -32,7 +32,7 @@ export const POST = withApiHandler<{ tripId: string }>(async (request, { params 
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'lat, lng and accuracy are required.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan la latitud, la longitud o la precisión.')
 
   const lastPing = await prisma.locationPing.findFirst({
     where: { tripId },
@@ -40,7 +40,7 @@ export const POST = withApiHandler<{ tripId: string }>(async (request, { params 
     select: { createdAt: true },
   })
   if (lastPing && Date.now() - lastPing.createdAt.getTime() < MIN_PING_INTERVAL_MS) {
-    throw new ApiError('RATE_LIMITED', 'Location pings are limited to one every 5 seconds.')
+    throw new ApiError('RATE_LIMITED', 'La ubicación se puede enviar como máximo cada 5 segundos.')
   }
 
   const ping = await prisma.locationPing.create({

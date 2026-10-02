@@ -16,7 +16,7 @@ export const POST = withApiHandler(async (request) => {
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Invalid error report.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'El reporte de error no es válido.')
 
   await reportError(new Error(parsed.data.message), { source: 'client', path: parsed.data.path })
 

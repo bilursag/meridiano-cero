@@ -19,11 +19,11 @@ export const PATCH = withApiHandler<{ id: string }>(async (request, { params }) 
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Invalid activity template update payload.')
-  if (Object.keys(parsed.data).length === 0) throw new ApiError('VALIDATION_ERROR', 'Nothing to update.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Los cambios de la actividad no son válidos.')
+  if (Object.keys(parsed.data).length === 0) throw new ApiError('VALIDATION_ERROR', 'No hay cambios para guardar.')
 
   const existing = await prisma.activityTemplate.findUnique({ where: { id } })
-  if (!existing) throw new ApiError('NOT_FOUND', 'Activity template not found.')
+  if (!existing) throw new ApiError('NOT_FOUND', 'No se encontró la actividad.')
 
   const activityTemplate = await prisma.activityTemplate.update({ where: { id }, data: parsed.data })
 
@@ -35,7 +35,7 @@ export const DELETE = withApiHandler<{ id: string }>(async (_request, { params }
   const { id } = await params
 
   const existing = await prisma.activityTemplate.findUnique({ where: { id } })
-  if (!existing) throw new ApiError('NOT_FOUND', 'Activity template not found.')
+  if (!existing) throw new ApiError('NOT_FOUND', 'No se encontró la actividad.')
 
   await prisma.activityTemplate.delete({ where: { id } })
 

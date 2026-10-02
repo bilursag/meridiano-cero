@@ -13,7 +13,7 @@ export const GET = withApiHandler<{ id: string }>(async (_request, { params }) =
     where: { id },
     include: { items: { orderBy: [{ dayNumber: 'asc' }, { order: 'asc' }] } },
   })
-  if (!program) throw new ApiError('NOT_FOUND', 'Program not found.')
+  if (!program) throw new ApiError('NOT_FOUND', 'No se encontró el programa.')
 
   return NextResponse.json({ program })
 })
@@ -29,11 +29,11 @@ export const PATCH = withApiHandler<{ id: string }>(async (request, { params }) 
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Invalid program update payload.')
-  if (Object.keys(parsed.data).length === 0) throw new ApiError('VALIDATION_ERROR', 'Nothing to update.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Los cambios del programa no son válidos.')
+  if (Object.keys(parsed.data).length === 0) throw new ApiError('VALIDATION_ERROR', 'No hay cambios para guardar.')
 
   const existing = await prisma.program.findUnique({ where: { id } })
-  if (!existing) throw new ApiError('NOT_FOUND', 'Program not found.')
+  if (!existing) throw new ApiError('NOT_FOUND', 'No se encontró el programa.')
 
   const program = await prisma.program.update({ where: { id }, data: parsed.data })
 
@@ -45,13 +45,13 @@ export const DELETE = withApiHandler<{ id: string }>(async (_request, { params }
   const { id } = await params
 
   const existing = await prisma.program.findUnique({ where: { id } })
-  if (!existing) throw new ApiError('NOT_FOUND', 'Program not found.')
+  if (!existing) throw new ApiError('NOT_FOUND', 'No se encontró el programa.')
 
   const tripCount = await prisma.trip.count({ where: { programId: id } })
   if (tripCount > 0) {
     throw new ApiError(
       'VALIDATION_ERROR',
-      `Cannot delete: ${tripCount} trip${tripCount === 1 ? '' : 's'} still use${tripCount === 1 ? 's' : ''} this program.`
+      `No se puede eliminar: ${tripCount === 1 ? '1 grupo usa' : `${tripCount} grupos usan`} este programa.`
     )
   }
 

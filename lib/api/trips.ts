@@ -34,7 +34,7 @@ export async function createTrip(input: TripCreateInput) {
     input
 
   const program = await prisma.program.findUnique({ where: { id: programId } })
-  if (!program) throw new ApiError('VALIDATION_ERROR', 'Program not found.')
+  if (!program) throw new ApiError('VALIDATION_ERROR', 'No se encontró el programa.')
 
   const school =
     (await prisma.school.findFirst({ where: { name: { equals: schoolName, mode: 'insensitive' } } })) ??

@@ -20,11 +20,11 @@ export const POST = withApiHandler<{ tripId: string }>(async (request, { params 
   const { tripId } = await params
 
   const trip = await prisma.trip.findUnique({ where: { id: tripId } })
-  if (!trip) throw new ApiError('NOT_FOUND', 'Trip not found.')
+  if (!trip) throw new ApiError('NOT_FOUND', 'No se encontró el grupo.')
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'A first name, last name, and valid email are required.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Ingresa nombre, apellido y un correo válido.')
 
   const client = await clerkClient()
   const existing = (await client.users.getUserList({ emailAddress: [parsed.data.emailAddress] })).data[0]

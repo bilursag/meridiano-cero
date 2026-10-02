@@ -28,7 +28,7 @@ export const POST = withApiHandler(async (request) => {
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Title and message are required.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan el título o el mensaje.')
 
   const template = await prisma.announcementTemplate.create({ data: parsed.data })
 

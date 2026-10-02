@@ -45,19 +45,19 @@ export const POST = withApiHandler<{ tripId: string }>(async (request, { params 
       authorName: formData.get('authorName'),
       type: formData.get('type') || undefined,
     })
-    if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Title, message and authorName are required.')
+    if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan el título, el mensaje o el autor.')
     data = parsed.data
 
     const maybeFile = formData.get('file')
     if (maybeFile instanceof File && maybeFile.size > 0) {
-      if (!maybeFile.type.startsWith('image/')) throw new ApiError('VALIDATION_ERROR', 'Only image files are allowed.')
-      if (maybeFile.size > MAX_FILE_SIZE) throw new ApiError('VALIDATION_ERROR', 'The photo must be 8MB or smaller.')
+      if (!maybeFile.type.startsWith('image/')) throw new ApiError('VALIDATION_ERROR', 'Solo se permiten imágenes.')
+      if (maybeFile.size > MAX_FILE_SIZE) throw new ApiError('VALIDATION_ERROR', 'La foto debe pesar 8 MB o menos.')
       file = maybeFile
     }
   } else {
     const json = await request.json().catch(() => null)
     const parsed = bodySchema.safeParse(json)
-    if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Title, message and authorName are required.')
+    if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan el título, el mensaje o el autor.')
     data = parsed.data
   }
 

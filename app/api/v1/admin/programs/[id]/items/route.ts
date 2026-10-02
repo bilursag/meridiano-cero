@@ -21,11 +21,11 @@ export const POST = withApiHandler<{ id: string }>(async (request, { params }) =
   const { id: programId } = await params
 
   const program = await prisma.program.findUnique({ where: { id: programId } })
-  if (!program) throw new ApiError('NOT_FOUND', 'Program not found.')
+  if (!program) throw new ApiError('NOT_FOUND', 'No se encontró el programa.')
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Missing or invalid program item fields.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan datos de la actividad o no son válidos.')
 
   let order = parsed.data.order
   if (order === undefined) {
@@ -48,12 +48,12 @@ export const PATCH = withApiHandler<{ id: string }>(async (request, { params }) 
 
   const json = await request.json().catch(() => null)
   const parsed = dayReorderSchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Invalid program reorder payload.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'El nuevo orden de las actividades no es válido.')
   const changes = parsed.data.items
 
   const ids = changes.map((change) => change.id)
   const owned = await prisma.programItem.count({ where: { id: { in: ids }, programId } })
-  if (owned !== new Set(ids).size) throw new ApiError('NOT_FOUND', 'Program item not found.')
+  if (owned !== new Set(ids).size) throw new ApiError('NOT_FOUND', 'No se encontró la actividad del programa.')
 
   await prisma.$transaction(
     changes.map(({ id, dayNumber, order, time }) =>

@@ -30,7 +30,7 @@ describe('withApiHandler', () => {
 
   it('does not report expected rejections such as a 403', async () => {
     const handler = withApiHandler(async () => {
-      throw new ApiError('FORBIDDEN', 'No access.')
+      throw new ApiError('FORBIDDEN', 'No tienes acceso.')
     })
 
     const response = await handler(request, context)

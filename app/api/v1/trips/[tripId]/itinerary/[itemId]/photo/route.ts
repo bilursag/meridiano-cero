@@ -17,9 +17,9 @@ export const POST = withApiHandler<{ tripId: string; itemId: string }>(async (re
 
   const formData = await request.formData().catch(() => null)
   const file = formData?.get('file')
-  if (!(file instanceof File)) throw new ApiError('VALIDATION_ERROR', 'A photo file is required.')
-  if (!file.type.startsWith('image/')) throw new ApiError('VALIDATION_ERROR', 'Only image files are allowed.')
-  if (file.size > MAX_FILE_SIZE) throw new ApiError('VALIDATION_ERROR', 'The photo must be 8MB or smaller.')
+  if (!(file instanceof File)) throw new ApiError('VALIDATION_ERROR', 'Falta la foto.')
+  if (!file.type.startsWith('image/')) throw new ApiError('VALIDATION_ERROR', 'Solo se permiten imágenes.')
+  if (file.size > MAX_FILE_SIZE) throw new ApiError('VALIDATION_ERROR', 'La foto debe pesar 8 MB o menos.')
 
   if (item.photoUrl) {
     await del(item.photoUrl).catch(() => {})

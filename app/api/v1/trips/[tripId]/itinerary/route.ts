@@ -35,7 +35,7 @@ export const POST = withApiHandler<{ tripId: string }>(async (request, { params 
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Missing or invalid itinerary item fields.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan datos de la actividad o no son válidos.')
 
   let order = parsed.data.order
   if (order === undefined) {
@@ -58,18 +58,18 @@ export const PATCH = withApiHandler<{ tripId: string }>(async (request, { params
 
   const json = await request.json().catch(() => null)
   const parsed = dayReorderSchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Invalid itinerary reorder payload.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'El nuevo orden de las actividades no es válido.')
   const changes = parsed.data.items
 
   const trip = await prisma.trip.findUnique({ where: { id: tripId }, select: { totalDays: true } })
-  if (!trip) throw new ApiError('NOT_FOUND', 'Trip not found.')
+  if (!trip) throw new ApiError('NOT_FOUND', 'No se encontró el grupo.')
   if (changes.some((change) => change.dayNumber > trip.totalDays)) {
-    throw new ApiError('VALIDATION_ERROR', `Day must be between 1 and ${trip.totalDays}.`)
+    throw new ApiError('VALIDATION_ERROR', `El día debe estar entre 1 y ${trip.totalDays}.`)
   }
 
   const ids = changes.map((change) => change.id)
   const owned = await prisma.itineraryItem.count({ where: { id: { in: ids }, tripId } })
-  if (owned !== new Set(ids).size) throw new ApiError('NOT_FOUND', 'Itinerary item not found.')
+  if (owned !== new Set(ids).size) throw new ApiError('NOT_FOUND', 'No se encontró la actividad del itinerario.')
 
   await prisma.$transaction(
     changes.map(({ id, dayNumber, order, time }) =>

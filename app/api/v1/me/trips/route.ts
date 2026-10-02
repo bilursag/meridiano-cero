@@ -6,7 +6,7 @@ import { withApiHandler } from '@/lib/api/handler'
 
 export const GET = withApiHandler(async () => {
   const { userId: clerkUserId } = await auth()
-  if (!clerkUserId) throw new ApiError('UNAUTHENTICATED', 'You must be signed in.')
+  if (!clerkUserId) throw new ApiError('UNAUTHENTICATED', 'Debes iniciar sesión.')
 
   const admin = await prisma.adminUser.findUnique({ where: { clerkUserId } })
   if (admin) {

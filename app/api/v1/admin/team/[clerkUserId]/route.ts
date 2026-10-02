@@ -10,7 +10,7 @@ export const DELETE = withApiHandler<{ clerkUserId: string }>(async (_request, {
   const { clerkUserId } = await params
 
   if (clerkUserId === currentUserId) {
-    throw new ApiError('VALIDATION_ERROR', 'You cannot remove your own admin access.')
+    throw new ApiError('VALIDATION_ERROR', 'No puedes quitarte tu propio acceso de administrador.')
   }
 
   await prisma.adminUser.delete({ where: { clerkUserId } })
