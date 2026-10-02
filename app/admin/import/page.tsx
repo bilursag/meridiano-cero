@@ -23,6 +23,7 @@ import { EmptyState } from '@/components/empty-state'
 import { FetchError } from '@/components/fetch-error'
 import { KNOWN_DESTINATIONS } from '@/lib/destinations'
 import type { ParsedImportResult, ParsedImportRow } from '@/lib/import/parse-planning-xlsx'
+import { chileDateKey, chileMidnightFromKey } from '@/lib/dates'
 
 type ProgramOption = { id: string; name: string }
 type CommitResult = { key: string; success: boolean; tripId?: string; error?: string }
@@ -32,13 +33,12 @@ type RowState = ParsedImportRow & {
 }
 
 function toDateInputValue(iso: string | null) {
-  return iso ? iso.slice(0, 10) : ''
+  return iso ? chileDateKey(new Date(iso)) : ''
 }
 
+// Chile midnight, like the parser and the trip form, so an edited date does not shift a day.
 function fromDateInputValue(value: string): string | null {
-  if (!value) return null
-  const date = new Date(`${value}T00:00:00.000Z`)
-  return Number.isNaN(date.getTime()) ? null : date.toISOString()
+  return value ? (chileMidnightFromKey(value)?.toISOString() ?? null) : null
 }
 
 function destinationLabel(ids: string[]) {
