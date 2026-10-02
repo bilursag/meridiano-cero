@@ -42,6 +42,8 @@ El **Mapa operativo** muestra en un mapa a todos los grupos que están en terren
 
 Cada grupo tiene una ficha con pestañas: **Resumen**, **Itinerario** (día por día, cada actividad con hora, lugar y descripción), **Comunicados** (historial de avisos enviados) y **Personas** (apoderados, monitores y sus códigos).
 
+Para mover una actividad, arrástrala desde el ícono ⋮⋮ de su izquierda. Dentro del mismo día, toma la hora del lugar donde la sueltas. Si la llevas a otro día (también a uno vacío), conserva su hora y queda ordenada por hora en ese día. Lo mismo funciona en el detalle de un programa.
+
 Los itinerarios se arman a partir de **Programas**: plantillas reutilizables de actividades que se pueden aplicar a cualquier grupo. Así no hay que escribir el mismo itinerario cada vez que sale un grupo al mismo destino con el mismo programa.
 
 Para armar una variante de un programa que ya existe (por ejemplo, el mismo destino con un día menos), usa **"Duplicar programa"** en el menú ⋮ de la lista o el botón **"Duplicar"** dentro del programa: se crea una copia con todas sus actividades, lista para ajustar. El nombre y la descripción de cualquier programa se cambian con **"Editar nombre"**. Duplicar o editar un programa no modifica los grupos que ya lo usan.

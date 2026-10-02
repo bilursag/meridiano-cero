@@ -104,6 +104,7 @@ Sidebar con estas secciones (`components/app-sidebar.tsx`):
 - Estado vacío compartido (`components/empty-state.tsx`): ícono + texto + acción, hermano de `components/fetch-error.tsx` para el caso de error de carga.
 - Notificación toast (`sonner`) en cada creación/edición/eliminación, además del error inline en formularios cuando aplica.
 - Paneles laterales (`Sheet`) para formularios largos en vez de diálogos centrados, con animación de entrada/salida (`ease-out` tipo "snappy" al abrir, `ease-in` más rápido al cerrar).
+- El itinerario de una gira y las actividades de un programa usan la misma lista arrastrable por días (`components/day-sortable-list.tsx`): una sola lista donde cada encabezado "Día N" es un destino fijo, así una actividad se puede mover a otro día, incluso a uno vacío. La regla vive en `lib/day-reorder.ts` (con tests): dentro del día, la actividad toma la hora del lugar donde cae; entre días, conserva su hora y se ordena por hora. El resultado se guarda en una sola transacción (`PATCH` sobre `trips/[tripId]/itinerary` o `admin/programs/[id]/items`).
 - El editor de ítem de actividad (día, hora, título, lugar, descripción, requisitos) es un único componente compartido (`components/activity-item-form.tsx`) usado tanto por el itinerario de una gira como por un programa — el único parámetro que cambia es si el "día" es un selector acotado a la duración de la gira o un número libre (programa).
 
 ### 5.1 Notificaciones del panel
