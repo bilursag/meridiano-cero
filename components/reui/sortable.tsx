@@ -313,7 +313,11 @@ function Sortable<T>({
 
 export interface SortableItemProps extends useRender.ComponentProps<"div"> {
   value: string
-  disabled?: boolean
+  /**
+   * `true` disables dragging and dropping. Pass `{ draggable: true }` for a fixed row that other
+   * items can still be dropped on (e.g. a group header).
+   */
+  disabled?: boolean | { draggable?: boolean; droppable?: boolean }
 }
 
 function SortableItem({
@@ -324,6 +328,7 @@ function SortableItem({
   ...props
 }: SortableItemProps) {
   const isOverlay = useContext(IsOverlayContext)
+  const fullyDisabled = disabled === true
 
   const {
     setNodeRef,
@@ -334,7 +339,7 @@ function SortableItem({
     isDragging: isSortableDragging,
   } = useSortable({
     id: value,
-    disabled: disabled || isOverlay,
+    disabled: isOverlay ? true : disabled,
     animateLayoutChanges,
   })
 
@@ -355,13 +360,13 @@ function SortableItem({
         "data-slot": "sortable-item",
         "data-value": value,
         "data-dragging": isSortableDragging,
-        "data-disabled": disabled,
+        "data-disabled": fullyDisabled,
         ref: setNodeRef,
         style,
         ...attributes,
         className: cn(
           isSortableDragging && "opacity-50 z-50",
-          disabled && "opacity-50",
+          fullyDisabled && "opacity-50",
           className
         ),
         children: props.children,
@@ -372,7 +377,7 @@ function SortableItem({
       value={
         isOverlay
           ? { listeners: undefined, isDragging: true, disabled: false }
-          : { listeners, isDragging: isSortableDragging, disabled }
+          : { listeners, isDragging: isSortableDragging, disabled: fullyDisabled }
       }
     >
       {useRender({
