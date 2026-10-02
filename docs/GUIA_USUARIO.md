@@ -60,7 +60,7 @@ Si la plataforma falla (por ejemplo, una página que no carga para un apoderado 
 
 - **Equipo**: quiénes son administradores y quiénes son monitores en la plataforma.
 - **Usuarios**: todas las personas registradas, sin importar a qué grupo pertenecen.
-- **Reportes**: alertas y logros que los monitores marcaron en terreno, exportables a Excel/CSV.
+- **Reportes**: alertas y logros que los monitores marcaron en terreno. El botón "Exportar grupos (Excel)" descarga un archivo .xlsx con todos los grupos, listo para ordenar y filtrar en Excel.
 - **Colegios**: cuántas giras tiene cada colegio, cuántas están activas.
 - **Códigos**: todos los códigos de acceso generados, para revocarlos o volver a generarlos.
 - **Mensajes**: las plantillas de comunicado que puede usar el monitor (así no redacta texto libre en terreno).
