@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { PlusIcon, RefreshCwIcon, XIcon } from "lucide-react"
 import { differenceInCalendarDays } from "date-fns"
 import type { DateRange } from "react-day-picker"
-import type { Trip } from "@prisma/client"
+import type { Trip, TripLeg } from "@prisma/client"
 
 import { Button } from "@/components/ui/button"
 import { DateRangePicker } from "@/components/date-range-picker"
@@ -46,9 +46,41 @@ const EMPTY_FORM = {
 
 const LAST_SCHOOL_STORAGE_KEY = "meridiano-cero:last-school-name"
 
+export type EditableTrip = Trip & { school: { name: string }; legs: TripLeg[] }
+
+const countField = (value: number | null) => (value === null ? "" : String(value))
+
+/** Form state for an existing trip: its main destination as a select value, extra legs after it. */
+function formFromTrip(trip: EditableTrip) {
+  const findKnown = (label: string) => KNOWN_DESTINATIONS.find((d) => d.label === label)
+  const main = findKnown(trip.legs[0]?.label ?? trip.destination)
+  return {
+    form: {
+      ...EMPTY_FORM,
+      name: trip.name,
+      school: trip.school.name,
+      groupNumber: trip.groupNumber ?? "",
+      grade: trip.grade ?? "",
+      salesExecutive: trip.salesExecutive ?? "",
+      // The main destination only; extra legs are listed separately and joined back on save.
+      destination: trip.legs[0]?.label ?? trip.destination,
+      studentCountMale: countField(trip.studentCountMale),
+      studentCountFemale: countField(trip.studentCountFemale),
+      companionCountMale: countField(trip.companionCountMale),
+      companionCountFemale: countField(trip.companionCountFemale),
+      initialLat: String(trip.initialLat),
+      initialLng: String(trip.initialLng),
+      hotel: trip.hotel ?? "",
+    },
+    destinationId: main?.id ?? CUSTOM_DESTINATION,
+    extraLegs: trip.legs.slice(1).map((leg, index) => ({ key: `saved-${index}`, destinationId: findKnown(leg.label)?.id ?? "" })),
+    dateRange: { from: new Date(trip.startDate), to: new Date(trip.endDate) } as DateRange,
+  }
+}
+
 /**
- * Shared by the "Nuevo grupo" Sheet (components/create-trip-sheet.tsx) and the
- * standalone /admin/trips/new page — the only real differences between the two
+ * Shared by the "Nuevo grupo" Sheet (components/create-trip-sheet.tsx), the
+ * standalone /admin/trips/new page and, with `trip`, the "Editar grupo" Sheet — the only real differences between the two
  * are the wrapping chrome (Sheet vs full page) and what happens on success, both
  * handled by the caller via `className`/`onSuccess`. The submit button lives
  * outside this component (connected via the `form` HTML attribute + `formId`)
@@ -57,25 +89,33 @@ const LAST_SCHOOL_STORAGE_KEY = "meridiano-cero:last-school-name"
 export function TripForm({
   formId,
   className,
+  trip,
   onSuccess,
   onStateChange,
 }: {
   formId: string
   className?: string
+  /** Edit this trip instead of creating one (no access codes; the name is never auto-replaced). */
+  trip?: EditableTrip
   onSuccess: (trip: Trip) => void
   onStateChange?: (state: { canSubmit: boolean; submitting: boolean }) => void
 }) {
-  const [form, setForm] = useState(EMPTY_FORM)
-  const [nameManuallyEdited, setNameManuallyEdited] = useState(false)
-  const [destinationId, setDestinationId] = useState("")
-  const [dateRange, setDateRange] = useState<DateRange | undefined>()
+  const isEdit = trip !== undefined
+  const legKeyCounter = useRef(0)
+  const [initial] = useState(() => (trip ? formFromTrip(trip) : null))
+  const [form, setForm] = useState(initial?.form ?? EMPTY_FORM)
+  const [nameManuallyEdited, setNameManuallyEdited] = useState(isEdit)
+  const [destinationId, setDestinationId] = useState(initial?.destinationId ?? "")
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(initial?.dateRange)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [programs, setPrograms] = useState<ProgramOption[]>([])
   const [programsError, setProgramsError] = useState<string | null>(null)
-  const [programId, setProgramId] = useState("")
-  const [extraLegs, setExtraLegs] = useState<ExtraLeg[]>([])
-  const legKeyCounter = useRef(0)
+  const [programId, setProgramId] = useState(trip?.programId ?? "")
+  const [extraLegs, setExtraLegs] = useState<ExtraLeg[]>(initial?.extraLegs ?? [])
+  // Legs and coordinates are only rewritten when the destination was actually changed, so editing
+  // anything else never drops a leg the form could not represent.
+  const [destinationTouched, setDestinationTouched] = useState(false)
 
   const loadPrograms = useCallback(async () => {
     setProgramsError(null)
@@ -92,11 +132,12 @@ export function TripForm({
   useEffect(() => {
     const id = window.setTimeout(() => {
       void loadPrograms()
+      if (isEdit) return
       const lastSchool = window.localStorage.getItem(LAST_SCHOOL_STORAGE_KEY)
       if (lastSchool) setForm((p) => ({ ...p, school: lastSchool }))
     }, 0)
     return () => window.clearTimeout(id)
-  }, [loadPrograms])
+  }, [loadPrograms, isEdit])
 
   function handleSchoolChange(name: string) {
     setForm((p) => ({ ...p, school: name }))
@@ -124,7 +165,13 @@ export function TripForm({
     .map((leg) => KNOWN_DESTINATIONS.find((d) => d.id === leg.destinationId))
     .filter((d): d is (typeof KNOWN_DESTINATIONS)[number] => !!d)
 
+  // "Pucón, Chile → Bariloche, Argentina": derived from the selection, so removing a leg updates it.
+  const destinationLabel = [form.destination.trim(), ...resolvedExtraLegs.map((d) => d.label)]
+    .filter(Boolean)
+    .join(" → ")
+
   function handleDestinationChange(id: string) {
+    setDestinationTouched(true)
     setDestinationId(id)
     if (id === CUSTOM_DESTINATION) {
       setForm((p) => ({ ...p, destination: "", initialLat: "", initialLng: "" }))
@@ -137,25 +184,24 @@ export function TripForm({
   }
 
   function addLeg() {
+    setDestinationTouched(true)
     legKeyCounter.current += 1
     setExtraLegs((p) => [...p, { key: String(legKeyCounter.current), destinationId: "" }])
   }
 
   function updateLeg(key: string, destinationId: string) {
+    setDestinationTouched(true)
     setExtraLegs((p) => p.map((leg) => (leg.key === key ? { ...leg, destinationId } : leg)))
-    const known = KNOWN_DESTINATIONS.find((d) => d.id === destinationId)
-    if (known && form.destination.trim()) {
-      const labels = [form.destination, ...extraLegs.map((leg) => (leg.key === key ? known.label : KNOWN_DESTINATIONS.find((d) => d.id === leg.destinationId)?.label)).filter(Boolean)]
-      setForm((p) => ({ ...p, destination: labels.join(" → ") }))
-    }
   }
 
   function removeLeg(key: string) {
+    setDestinationTouched(true)
     setExtraLegs((p) => p.filter((leg) => leg.key !== key))
   }
 
-  async function handleCreateTrip() {
+  async function handleSubmit() {
     if (!dateRange?.from || !dateRange?.to || !programId) return
+    if (isEdit) return handleUpdateTrip(dateRange.from, dateRange.to)
     setSubmitting(true)
     setError(null)
     const legs =
@@ -172,6 +218,7 @@ export function TripForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
+        destination: destinationLabel,
         groupNumber: form.groupNumber.trim() || undefined,
         grade: form.grade.trim() || undefined,
         salesExecutive: form.salesExecutive.trim() || undefined,
@@ -201,7 +248,62 @@ export function TripForm({
     }
   }
 
+  async function handleUpdateTrip(from: Date, to: Date) {
+    setSubmitting(true)
+    setError(null)
+    const count = (value: string) => (value.trim() === "" ? null : Number(value))
+    const studentCountMale = Number(form.studentCountMale) || 0
+    const studentCountFemale = Number(form.studentCountFemale) || 0
+    // Trips created without a gender split only have a total: keep it unless a split is entered.
+    const studentFields = hasStudentSplit
+      ? { studentCount: studentCountMale + studentCountFemale, studentCountMale, studentCountFemale }
+      : {}
+    const destinationFields = destinationTouched
+      ? {
+          destination: destinationLabel,
+          initialLat: Number(form.initialLat),
+          initialLng: Number(form.initialLng),
+          legs:
+            resolvedExtraLegs.length > 0
+              ? [
+                  { label: form.destination.trim(), lat: Number(form.initialLat), lng: Number(form.initialLng) },
+                  ...resolvedExtraLegs.map((d) => ({ label: d.label, lat: d.lat, lng: d.lng })),
+                ]
+              : [],
+        }
+      : {}
+    const res = await fetch(`/api/v1/trips/${trip!.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: form.name.trim(),
+        school: form.school.trim(),
+        groupNumber: form.groupNumber.trim() || null,
+        grade: form.grade.trim() || null,
+        salesExecutive: form.salesExecutive.trim() || null,
+        startDate: from.toISOString(),
+        endDate: to.toISOString(),
+        ...studentFields,
+        companionCountMale: count(form.companionCountMale),
+        companionCountFemale: count(form.companionCountFemale),
+        hotel: form.hotel.trim() || null,
+        programId,
+        ...destinationFields,
+      }),
+    })
+    setSubmitting(false)
+    if (res.ok) {
+      onSuccess((await res.json()).trip)
+    } else {
+      const data = await res.json().catch(() => null)
+      setError(data?.error?.message ?? "No se pudo guardar el grupo.")
+    }
+  }
+
   const totalStudents = (Number(form.studentCountMale) || 0) + (Number(form.studentCountFemale) || 0)
+  const hasStudentSplit = form.studentCountMale.trim() !== "" || form.studentCountFemale.trim() !== ""
+  // Editing a trip that only has a total keeps that total, so the split is not required.
+  const studentsValid = isEdit && !hasStudentSplit ? (trip?.studentCount ?? 0) > 0 : totalStudents > 0
 
   const canSubmit =
     !submitting &&
@@ -213,7 +315,8 @@ export function TripForm({
     form.initialLng !== "" &&
     !!programId &&
     !!form.school.trim() &&
-    totalStudents > 0
+    !!form.name.trim() &&
+    studentsValid
 
   useEffect(() => {
     onStateChange?.({ canSubmit, submitting })
@@ -227,7 +330,7 @@ export function TripForm({
         className={className}
         onSubmit={(e) => {
           e.preventDefault()
-          void handleCreateTrip()
+          void handleSubmit()
         }}
       >
         <div className="flex flex-col gap-2">
@@ -277,9 +380,11 @@ export function TripForm({
               setForm((p) => ({ ...p, name: e.target.value }))
             }}
           />
-          <p className="text-xs text-muted-foreground">
-            Se autogenera a partir del colegio, curso, programa y año — puedes sobrescribirlo.
-          </p>
+          {isEdit ? null : (
+            <p className="text-xs text-muted-foreground">
+              Se autogenera a partir del colegio, curso, programa y año — puedes sobrescribirlo.
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">
@@ -306,7 +411,10 @@ export function TripForm({
               id="destination"
               placeholder="Nombre del destino"
               value={form.destination}
-              onChange={(e) => setForm((p) => ({ ...p, destination: e.target.value }))}
+              onChange={(e) => {
+                setDestinationTouched(true)
+                setForm((p) => ({ ...p, destination: e.target.value }))
+              }}
             />
           </div>
         ) : null}
@@ -364,9 +472,11 @@ export function TripForm({
             </div>
           ) : (
             <p className="text-xs text-muted-foreground">
-              {programs.length
-                ? "El itinerario se completa automáticamente con las actividades de este programa."
-                : "Primero crea un programa en /admin/programs."}
+              {isEdit
+                ? "Cambiar el programa no modifica el itinerario. Para copiar sus actividades, usa «Aplicar programa» en la pestaña Itinerario."
+                : programs.length
+                  ? "El itinerario se completa automáticamente con las actividades de este programa."
+                  : "Primero crea un programa en /admin/programs."}
             </p>
           )}
         </div>
@@ -397,7 +507,11 @@ export function TripForm({
               onChange={(e) => setForm((p) => ({ ...p, studentCountFemale: e.target.value }))}
             />
           </div>
-          <p className="text-xs text-muted-foreground">Total: {totalStudents} alumno{totalStudents === 1 ? "" : "s"}</p>
+          <p className="text-xs text-muted-foreground">
+            {isEdit && !hasStudentSplit
+              ? `Total actual: ${trip?.studentCount ?? 0} alumnos, sin desglose por género. Completa los campos para desglosarlo.`
+              : `Total: ${totalStudents} alumno${totalStudents === 1 ? "" : "s"}`}
+          </p>
         </div>
         <div className="flex flex-col gap-2 sm:col-span-2">
           <Label>Acompañantes por género (opcional)</Label>
@@ -435,7 +549,10 @@ export function TripForm({
                 type="number"
                 placeholder="Latitud inicial"
                 value={form.initialLat}
-                onChange={(e) => setForm((p) => ({ ...p, initialLat: e.target.value }))}
+                onChange={(e) => {
+                  setDestinationTouched(true)
+                  setForm((p) => ({ ...p, initialLat: e.target.value }))
+                }}
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -445,7 +562,10 @@ export function TripForm({
                 type="number"
                 placeholder="Longitud inicial"
                 value={form.initialLng}
-                onChange={(e) => setForm((p) => ({ ...p, initialLng: e.target.value }))}
+                onChange={(e) => {
+                  setDestinationTouched(true)
+                  setForm((p) => ({ ...p, initialLng: e.target.value }))
+                }}
               />
             </div>
           </>
@@ -455,72 +575,76 @@ export function TripForm({
           </p>
         ) : null}
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="parentCode">Código apoderado</Label>
-          <div className="flex gap-2">
-            <Input
-              id="parentCode"
-              placeholder="Código apoderado"
-              className="flex-1"
-              value={form.parentCode}
-              onChange={(e) => setForm((p) => ({ ...p, parentCode: e.target.value.toUpperCase() }))}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => setForm((p) => ({ ...p, parentCode: generateAccessCode() }))}
-            >
-              <RefreshCwIcon className="size-4" />
-              <span className="sr-only">Generar código</span>
-            </Button>
-          </div>
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="monitorCode">Código coordinador</Label>
-          <div className="flex gap-2">
-            <Input
-              id="monitorCode"
-              placeholder="Código coordinador"
-              className="flex-1"
-              value={form.monitorCode}
-              onChange={(e) => setForm((p) => ({ ...p, monitorCode: e.target.value.toUpperCase() }))}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => setForm((p) => ({ ...p, monitorCode: generateAccessCode() }))}
-            >
-              <RefreshCwIcon className="size-4" />
-              <span className="sr-only">Generar código</span>
-            </Button>
-          </div>
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="studentCode">Código alumno</Label>
-          <div className="flex gap-2">
-            <Input
-              id="studentCode"
-              placeholder="Código alumno"
-              className="flex-1"
-              value={form.studentCode}
-              onChange={(e) => setForm((p) => ({ ...p, studentCode: e.target.value.toUpperCase() }))}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => setForm((p) => ({ ...p, studentCode: generateAccessCode() }))}
-            >
-              <RefreshCwIcon className="size-4" />
-              <span className="sr-only">Generar código</span>
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Puedes generar más códigos de alumno desde la ficha del grupo una vez creado.
-          </p>
-        </div>
+        {isEdit ? null : (
+          <>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="parentCode">Código apoderado</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="parentCode"
+                  placeholder="Código apoderado"
+                  className="flex-1"
+                  value={form.parentCode}
+                  onChange={(e) => setForm((p) => ({ ...p, parentCode: e.target.value.toUpperCase() }))}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setForm((p) => ({ ...p, parentCode: generateAccessCode() }))}
+                >
+                  <RefreshCwIcon className="size-4" />
+                  <span className="sr-only">Generar código</span>
+                </Button>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="monitorCode">Código coordinador</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="monitorCode"
+                  placeholder="Código coordinador"
+                  className="flex-1"
+                  value={form.monitorCode}
+                  onChange={(e) => setForm((p) => ({ ...p, monitorCode: e.target.value.toUpperCase() }))}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setForm((p) => ({ ...p, monitorCode: generateAccessCode() }))}
+                >
+                  <RefreshCwIcon className="size-4" />
+                  <span className="sr-only">Generar código</span>
+                </Button>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="studentCode">Código alumno</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="studentCode"
+                  placeholder="Código alumno"
+                  className="flex-1"
+                  value={form.studentCode}
+                  onChange={(e) => setForm((p) => ({ ...p, studentCode: e.target.value.toUpperCase() }))}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setForm((p) => ({ ...p, studentCode: generateAccessCode() }))}
+                >
+                  <RefreshCwIcon className="size-4" />
+                  <span className="sr-only">Generar código</span>
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Puedes generar más códigos de alumno desde la ficha del grupo una vez creado.
+              </p>
+            </div>
+          </>
+        )}
       </form>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </>

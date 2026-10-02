@@ -28,6 +28,14 @@ export type TripCreateInput = {
   legs?: { label: string; lat: number; lng: number }[]
 }
 
+/** Reuses a school whose name matches ignoring case, so retyping it does not create a duplicate. */
+export async function findOrCreateSchool(name: string) {
+  return (
+    (await prisma.school.findFirst({ where: { name: { equals: name, mode: 'insensitive' } } })) ??
+    (await prisma.school.create({ data: { name } }))
+  )
+}
+
 /** Shared by the single "Nuevo grupo" form and the bulk Excel importer. */
 export async function createTrip(input: TripCreateInput) {
   const { school: schoolName, parentCode, monitorCode, studentCode, programId, legs, startDate, endDate, ...tripData } =
@@ -36,9 +44,7 @@ export async function createTrip(input: TripCreateInput) {
   const program = await prisma.program.findUnique({ where: { id: programId } })
   if (!program) throw new ApiError('VALIDATION_ERROR', 'No se encontró el programa.')
 
-  const school =
-    (await prisma.school.findFirst({ where: { name: { equals: schoolName, mode: 'insensitive' } } })) ??
-    (await prisma.school.create({ data: { name: schoolName } }))
+  const school = await findOrCreateSchool(schoolName)
 
   const totalDays = differenceInCalendarDays(endDate, startDate) + 1
 
