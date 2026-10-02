@@ -2,32 +2,25 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { CalendarRangeIcon, MoreVerticalIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { CalendarRangeIcon, CopyIcon, MoreVerticalIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 import { SiteHeader } from '@/components/site-header'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Textarea } from '@/components/ui/textarea'
 import { EmptyState } from '@/components/empty-state'
 import { FetchError } from '@/components/fetch-error'
+import { ProgramDetailsDialog, type ProgramDetailsValues } from '@/components/program-details-dialog'
+import { duplicateProgram, updateProgramDetails } from '@/lib/program-actions'
 
 type ProgramRow = {
   id: string
@@ -40,11 +33,9 @@ type ProgramRow = {
 export default function AdminProgramsPage() {
   const [programs, setPrograms] = useState<ProgramRow[] | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [open, setOpen] = useState(false)
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [creating, setCreating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+  const [createOpen, setCreateOpen] = useState(false)
+  const [editingProgram, setEditingProgram] = useState<ProgramRow | null>(null)
 
   const load = useCallback(async () => {
     setLoadError(null)
@@ -64,27 +55,40 @@ export default function AdminProgramsPage() {
     return () => window.clearTimeout(id)
   }, [load])
 
-  async function handleCreate() {
-    setCreating(true)
-    setError(null)
+  async function handleCreate(values: ProgramDetailsValues) {
     const res = await fetch('/api/v1/admin/programs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, description: description.trim() || undefined }),
+      body: JSON.stringify({ name: values.name, description: values.description || undefined }),
     })
-    setCreating(false)
     if (res.ok) {
       toast.success('Programa creado.')
-      setName('')
-      setDescription('')
-      setOpen(false)
+      setCreateOpen(false)
       void load()
-    } else {
-      const data = await res.json().catch(() => null)
-      const message = data?.error?.message ?? 'No se pudo crear el programa.'
-      setError(message)
-      toast.error(message)
+      return { ok: true }
     }
+    const data = await res.json().catch(() => null)
+    return { ok: false, error: data?.error?.message ?? 'No se pudo crear el programa.' }
+  }
+
+  async function handleEdit(values: ProgramDetailsValues) {
+    if (!editingProgram) return { ok: false }
+    const result = await updateProgramDetails(editingProgram.id, values)
+    if (!result.ok) return result
+    toast.success('Programa actualizado.')
+    setEditingProgram(null)
+    void load()
+    return { ok: true }
+  }
+
+  async function handleDuplicate(program: ProgramRow) {
+    const result = await duplicateProgram(program.id)
+    if (!result.ok) {
+      toast.error(result.error)
+      return
+    }
+    toast.success(`Se creó "${program.name} (copia)". Cámbiale el nombre y ajusta sus actividades.`)
+    router.push(`/admin/programs/${result.data.id}`)
   }
 
   async function handleDelete(program: ProgramRow) {
@@ -107,44 +111,10 @@ export default function AdminProgramsPage() {
         title="Programas"
         subtitle="Itinerarios reutilizables que se asignan a uno o más grupos"
         right={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button size="xs">
-                <PlusIcon />
-                Nuevo programa
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Nuevo programa</DialogTitle>
-              </DialogHeader>
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="program-name">Nombre</Label>
-                  <Input
-                    id="program-name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="BRC 107"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="program-description">Descripción (opcional)</Label>
-                  <Textarea
-                    id="program-description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                </div>
-                {error ? <p className="text-sm text-destructive">{error}</p> : null}
-              </div>
-              <DialogFooter>
-                <Button onClick={handleCreate} disabled={creating || !name.trim()}>
-                  {creating ? 'Creando…' : 'Crear programa'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button size="xs" onClick={() => setCreateOpen(true)}>
+            <PlusIcon />
+            Nuevo programa
+          </Button>
         }
       />
       <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
@@ -189,7 +159,16 @@ export default function AdminProgramsPage() {
                               <span className="sr-only">Abrir menú</span>
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onSelect={() => setEditingProgram(program)}>
+                              <PencilIcon className="size-4" />
+                              Editar nombre
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleDuplicate(program)}>
+                              <CopyIcon className="size-4" />
+                              Duplicar programa
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-destructive focus:bg-destructive/10 focus:text-destructive"
                               onSelect={() => handleDelete(program)}
@@ -218,6 +197,25 @@ export default function AdminProgramsPage() {
           </Card>
         )}
       </div>
+      <ProgramDetailsDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        title="Nuevo programa"
+        submitLabel="Crear programa"
+        submittingLabel="Creando…"
+        onSubmit={handleCreate}
+      />
+      <ProgramDetailsDialog
+        open={editingProgram !== null}
+        onOpenChange={(open) => !open && setEditingProgram(null)}
+        title="Editar programa"
+        submitLabel="Guardar cambios"
+        submittingLabel="Guardando…"
+        initialValues={
+          editingProgram ? { name: editingProgram.name, description: editingProgram.description ?? '' } : undefined
+        }
+        onSubmit={handleEdit}
+      />
     </>
   )
 }

@@ -35,3 +35,33 @@ export async function applyProgramToTrip(tripId: string, programId: string) {
 
   return items
 }
+
+/**
+ * Creates "<name> (copia)" with the same description and activities, in one write so a failure never
+ * leaves a half-copied program behind. Trips stay on the original: assigning them is a separate choice.
+ */
+export async function duplicateProgram(programId: string) {
+  const program = await prisma.program.findUnique({
+    where: { id: programId },
+    include: { items: { orderBy: [{ dayNumber: 'asc' }, { order: 'asc' }] } },
+  })
+  if (!program) throw new ApiError('NOT_FOUND', 'Program not found.')
+
+  return prisma.program.create({
+    data: {
+      name: `${program.name} (copia)`,
+      description: program.description,
+      items: {
+        create: program.items.map((item) => ({
+          dayNumber: item.dayNumber,
+          time: item.time,
+          title: item.title,
+          location: item.location,
+          description: item.description,
+          requirementsMessage: item.requirementsMessage,
+          order: item.order,
+        })),
+      },
+    },
+  })
+}

@@ -1,8 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import { CalendarRangeIcon, GripVerticalIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import { useParams, useRouter } from 'next/navigation'
+import { CalendarRangeIcon, CopyIcon, GripVerticalIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ActivityTemplate, ProgramItem } from '@prisma/client'
 import { SiteHeader } from '@/components/site-header'
@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/empty-state'
+import { ProgramDetailsDialog, type ProgramDetailsValues } from '@/components/program-details-dialog'
+import { duplicateProgram, updateProgramDetails } from '@/lib/program-actions'
 
 type ProgramDetail = {
   id: string
@@ -36,6 +38,9 @@ export default function AdminProgramDetailPage() {
   const [activityTemplates, setActivityTemplates] = useState<ActivityTemplate[]>([])
   const [itemOpen, setItemOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<ActivityItemEditing | null>(null)
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [duplicating, setDuplicating] = useState(false)
+  const router = useRouter()
 
   const load = useCallback(async () => {
     const [programRes, activityTemplatesRes] = await Promise.all([
@@ -52,6 +57,28 @@ export default function AdminProgramDetailPage() {
     }, 0)
     return () => window.clearTimeout(id)
   }, [load])
+
+  async function handleSaveDetails(values: ProgramDetailsValues) {
+    const result = await updateProgramDetails(programId, values)
+    if (!result.ok) return result
+    toast.success('Programa actualizado.')
+    setDetailsOpen(false)
+    void load()
+    return { ok: true }
+  }
+
+  async function handleDuplicate() {
+    if (!program) return
+    setDuplicating(true)
+    const result = await duplicateProgram(programId)
+    setDuplicating(false)
+    if (!result.ok) {
+      toast.error(result.error)
+      return
+    }
+    toast.success(`Se creó "${program.name} (copia)". Cámbiale el nombre y ajusta sus actividades.`)
+    router.push(`/admin/programs/${result.data.id}`)
+  }
 
   function openCreateItem() {
     setEditingItem(null)
@@ -165,7 +192,22 @@ export default function AdminProgramDetailPage() {
 
   return (
     <>
-      <SiteHeader title={program.name} subtitle={program.description ?? 'Programa reutilizable'} />
+      <SiteHeader
+        title={program.name}
+        subtitle={program.description ?? 'Programa reutilizable'}
+        right={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="xs" onClick={() => setDetailsOpen(true)}>
+              <PencilIcon />
+              Editar nombre
+            </Button>
+            <Button variant="outline" size="xs" onClick={handleDuplicate} disabled={duplicating}>
+              <CopyIcon />
+              {duplicating ? 'Duplicando…' : 'Duplicar'}
+            </Button>
+          </div>
+        }
+      />
       <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -244,6 +286,15 @@ export default function AdminProgramDetailPage() {
         editingItem={editingItem}
         existingItems={program?.items}
         onSubmit={handleSaveItem}
+      />
+      <ProgramDetailsDialog
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        title="Editar programa"
+        submitLabel="Guardar cambios"
+        submittingLabel="Guardando…"
+        initialValues={{ name: program.name, description: program.description ?? '' }}
+        onSubmit={handleSaveDetails}
       />
     </>
   )
