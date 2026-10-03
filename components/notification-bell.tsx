@@ -13,6 +13,8 @@ import {
   TriangleAlertIcon,
   TrophyIcon,
   UserPlusIcon,
+  UserXIcon,
+  WifiOffIcon,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -27,6 +29,8 @@ const ICON_BY_TYPE: Record<NotificationType, { icon: React.ComponentType<{ class
   MONITOR_JOINED: { icon: UserPlusIcon, className: "text-primary" },
   TRIP_STATUS_CHANGED: { icon: RefreshCwIcon, className: "text-muted-foreground" },
   SYSTEM_ERROR: { icon: ServerCrashIcon, className: "text-destructive" },
+  TRIP_NO_SIGNAL: { icon: WifiOffIcon, className: "text-destructive" },
+  TRIP_NO_MONITOR: { icon: UserXIcon, className: "text-amber-500" },
 }
 
 export function NotificationBell() {

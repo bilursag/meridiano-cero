@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import type { Notification } from "@prisma/client"
+import type { Notification, NotificationType } from "@prisma/client"
 
 export type AdminNotification = Omit<Notification, "createdAt"> & { createdAt: string }
 
@@ -16,6 +16,8 @@ type NotificationsContextValue = {
 }
 
 const POLL_INTERVAL_MS = 30_000
+// Worth interrupting the admin with a toast, not just the bell count.
+const URGENT_TYPES: NotificationType[] = ["TRIP_ALERT", "TRIP_NO_SIGNAL"]
 
 const NotificationsContext = React.createContext<NotificationsContextValue | null>(null)
 
@@ -35,7 +37,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
 
     if (knownIds.current) {
       const newAlerts = data.notifications.filter(
-        (n) => n.type === "TRIP_ALERT" && !knownIds.current!.has(n.id)
+        (n) => URGENT_TYPES.includes(n.type) && !knownIds.current!.has(n.id)
       )
       for (const alert of newAlerts) {
         toast.error(alert.title, {

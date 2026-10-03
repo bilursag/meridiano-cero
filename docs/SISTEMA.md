@@ -120,11 +120,14 @@ Solo se notifica lo que ocurre **fuera del panel** — las acciones de un admin 
 | Monitor publica un comunicado `ACHIEVEMENT` | `POST trips/[tripId]/announcements` | `TRIP_ACHIEVEMENT` |
 | Un monitor se une a una gira por primera vez | `auth/redeem`, `auth/claim-invite` | `MONITOR_JOINED` |
 | Monitor cambia el estado de la gira | `PATCH trips/[tripId]` | `TRIP_STATUS_CHANGED` |
+| Gira en terreno ("En ruta"/"En actividad") lleva 30 min sin enviar ubicación | Tarea programada | `TRIP_NO_SIGNAL` — también dispara el toast rojo; una por corte |
+| Gira parte en 3 días o menos sin coordinador | Tarea programada | `TRIP_NO_MONITOR` — una sola vez por gira |
 
 Los comunicados `INFO` (transiciones de itinerario) no generan notificación a propósito, para no saturar el feed.
 
 - **Feed compartido**: todos los admins ven las mismas notificaciones. El estado de lectura es por admin, con un solo timestamp (`AdminUser.notificationsSeenAt`): no leída = creada después de ese momento. Abrir la campana marca todo como visto. Un admin nuevo parte con contador en 0 (se usa su `createdAt` si nunca abrió la campana).
 - **Creación** (`lib/notifications.ts`): cada endpoint llama a `notifyInBackground(...)`, que corre dentro de `after()` de Next — se ejecuta después de enviar la respuesta y un error ahí se loguea sin afectar la petición del monitor.
+- **Alertas detectadas por tarea programada**: Vercel Cron llama a `GET /api/cron/trip-alerts` cada 10 minutos (`vercel.json`, solo en producción), autenticado con `Authorization: Bearer $CRON_SECRET` (variable sensible en Vercel; sin ella la ruta responde 401). Las reglas viven en `lib/trip-alerts.ts` (con tests) y la consulta en `lib/api/trip-alerts.ts`. "Sin señal" solo cuenta giras dentro de sus fechas que ya transmitieron en esta gira; "Descansando" no alerta.
 - **Entrega**: polling cada 30 s desde `lib/notifications-context.tsx` (pausado con la pestaña oculta, refresco inmediato al volver). No hay WebSockets/SSE.
 
 ### 5.2 Registro de errores
@@ -205,6 +208,6 @@ REST convencional bajo `/api/v1`, protegido por los guards de `require-role.ts`,
 - Acciones masivas (bulk actions) en Usuarios/Códigos.
 - Deduplicación/normalización de nombres de colegio (variantes de escritura crean `School` duplicados) — dejado a propósito por ahora.
 - Chequeo de disponibilidad (uptime) por cron — complementa el registro de errores de §5.2, que no ve caídas previas a cargar la app.
-- Notificaciones fase 2 (detectadas por cron): gira en terreno sin señal GPS por X minutos, y gira próxima a partir sin monitor asignado. Requiere Vercel Cron — "sin señal" necesita el plan Pro (en Hobby los cron corren una vez al día).
+- Borrado automático por plazo (historial GPS, fotos, cuentas inactivas) que promete `/privacidad` — esperando que el cliente confirme los plazos; se haría con la misma tarea programada de §5.1.
 - Drag-and-drop para reordenar filas en el importador (`/admin/import`) — postergado, sin alcance definido todavía.
 - Paso a producción real (dominio propio, cuentas oficiales de Neon/Clerk/Vercel a nombre del cliente) — bloqueado esperando que el cliente entregue esos accesos.

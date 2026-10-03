@@ -39,6 +39,8 @@ enum NotificationType {
   MONITOR_JOINED
   TRIP_STATUS_CHANGED
   SYSTEM_ERROR
+  TRIP_NO_SIGNAL
+  TRIP_NO_MONITOR
 }
 
 model School {
