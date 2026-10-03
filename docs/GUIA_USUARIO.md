@@ -52,7 +52,7 @@ Para armar una variante de un programa que ya existe (por ejemplo, el mismo dest
 
 ### Notificaciones
 
-La campana arriba a la derecha avisa cuando pasa algo importante en terreno: un coordinador reporta una **alerta** o un **logro**, un coordinador nuevo se une a un grupo, o un coordinador cambia el estado del grupo. El número rojo indica cuántas no has visto; al abrir la campana se marcan como vistas, y al hacer clic en una vas directo a la ficha del grupo.
+La campana arriba a la derecha avisa cuando pasa algo importante en terreno: un coordinador reporta una **alerta** o un **logro**, un coordinador nuevo se une a un grupo, o un coordinador cambia el estado del grupo. Además avisa sola en dos casos: cuando un grupo en ruta o en actividad lleva 30 minutos sin enviar su ubicación (también aparece un aviso rojo en pantalla), y cuando un grupo parte en 3 días o menos y todavía no tiene coordinador. El número rojo indica cuántas no has visto; al abrir la campana se marcan como vistas, y al hacer clic en una vas directo a la ficha del grupo.
 
 Las alertas además aparecen como un aviso rojo en pantalla apenas llegan (dentro de unos 30 segundos), aunque estés en otra sección del panel.
 
