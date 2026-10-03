@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: 'Cómo Meridiano Cero trata los datos personales en su plataforma de giras de estudio y su app móvil.',
 }
 
-const LAST_UPDATED = '2 de octubre de 2026'
+const LAST_UPDATED = '3 de octubre de 2026'
 
 const COMPANY = {
   name: 'Sociedad Anónima Meridiano Cero SpA',
@@ -112,9 +112,10 @@ export default function PrivacyPolicyPage() {
 
         <Section title="2. Qué datos recopilamos">
           <p>
-            Recopilamos solo los datos necesarios para coordinar la gira. La plataforma no guarda nombres, RUT, fechas
-            de nacimiento ni datos de salud de los estudiantes: de cada grupo registra solo cuántos estudiantes y
-            acompañantes viajan.
+            Recopilamos solo los datos necesarios para coordinar la gira. La ficha de cada grupo no guarda nombres, RUT,
+            fechas de nacimiento ni datos de salud de los estudiantes: registra solo cuántos estudiantes y acompañantes
+            viajan. Los alumnos que crean su propia cuenta para usar la app quedan registrados con su nombre y correo,
+            como cualquier usuario.
           </p>
           <Table
             head={['Quién', 'Datos', 'Cómo los obtenemos']}
@@ -185,13 +186,14 @@ export default function PrivacyPolicyPage() {
                 estudiante en situaciones privadas o que permitan ubicarlo fuera de la gira.
               </>,
               <>
-                <strong>Cuentas de estudiantes:</strong> son opcionales y se crean solo por invitación del equipo de
-                Meridiano Cero. Las cuentas de menores de 14 años requieren la autorización de su padre, madre o
-                apoderado.
+                <strong>Cuentas de estudiantes:</strong> son opcionales. Un alumno puede crear su cuenta en la app y unirse
+                a su gira con el código de alumno que entrega el colegio o el equipo de Meridiano Cero, o por invitación
+                por correo. Con esa cuenta solo ve el itinerario y los comunicados de su gira, y no comparte su
+                ubicación. Las cuentas de menores de 14 años requieren la autorización de su padre, madre o apoderado.
               </>,
               <>
-                <strong>Datos mínimos:</strong> no registramos nombres, RUT, datos de salud ni otros datos sensibles de
-                los estudiantes en la plataforma.
+                <strong>Datos mínimos:</strong> no registramos RUT, fechas de nacimiento, datos de salud ni otros datos
+                sensibles de los estudiantes. De quienes crean su cuenta guardamos solo su nombre y correo.
               </>,
             ]}
           />
