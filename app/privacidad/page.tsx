@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import { EmailLink, List, PublicPage, Section, Table } from '@/components/public-page'
+import { COMPANY } from '@/lib/company'
 
 // Public page: app stores require a reachable privacy-policy URL. The mobile app opens this same page,
 // so it is the single source of truth — keep it in sync with what the platform actually collects.
@@ -9,14 +10,6 @@ export const metadata: Metadata = {
 }
 
 const LAST_UPDATED = '3 de octubre de 2026'
-
-const COMPANY = {
-  name: 'Sociedad Anónima Meridiano Cero SpA',
-  rut: '76.016.556-5',
-  address: 'Avenida Presidente Bulnes 209, oficina 71, Santiago, Chile',
-  email: 'contacto@meridianocero.cl',
-  phones: ['+56 2 6469 1951', '+56 9 3269 1136'],
-}
 
 const collectedData = [
   {
@@ -79,17 +72,7 @@ const retention = [
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:py-14">
-      <header className="mb-10 space-y-3">
-        <Link href="/" className="inline-block">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/branding/LOGOS/logo-meridiano-naranja.svg" alt="Meridiano Cero" className="h-8 w-auto" />
-        </Link>
-        <h1 className="text-3xl font-semibold tracking-tight">Política de privacidad</h1>
-        <p className="text-sm text-muted-foreground">Última actualización: {LAST_UPDATED}</p>
-      </header>
-
-      <div className="space-y-10 text-[15px] leading-relaxed text-foreground/90">
+    <PublicPage title="Política de privacidad" updated={LAST_UPDATED}>
         <Section title="1. Quiénes somos y a qué se aplica esta política">
           <p>
             {COMPANY.name}, RUT {COMPANY.rut}, con domicilio en {COMPANY.address}, que opera bajo el nombre Meridiano
@@ -276,7 +259,7 @@ export default function PrivacyPolicyPage() {
             ]}
           />
           <p>
-            Para ejercerlos, escriba a <EmailLink /> desde el correo asociado a su cuenta e indique qué derecho quiere
+            Para ejercerlos, escriba a <EmailLink email={COMPANY.email} /> desde el correo asociado a su cuenta e indique qué derecho quiere
             ejercer. Responderemos en un plazo máximo de 30 días corridos. Los padres, madres y apoderados pueden
             ejercer estos derechos en nombre de los estudiantes menores de edad a su cargo.
           </p>
@@ -296,69 +279,12 @@ export default function PrivacyPolicyPage() {
           <List
             items={[
               <><strong>Responsable:</strong> {COMPANY.name}, RUT {COMPANY.rut}</>,
-              <><strong>Correo:</strong> <EmailLink /></>,
+              <><strong>Correo:</strong> <EmailLink email={COMPANY.email} /></>,
               <><strong>Teléfono:</strong> {COMPANY.phones.join(' / ')}</>,
               <><strong>Dirección:</strong> {COMPANY.address}</>,
             ]}
           />
         </Section>
-      </div>
-    </main>
-  )
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-4">
-      <h2 className="text-xl font-semibold tracking-tight text-foreground">{title}</h2>
-      {children}
-    </section>
-  )
-}
-
-function List({ items }: { items: React.ReactNode[] }) {
-  return (
-    <ul className="list-disc space-y-2 pl-5 marker:text-muted-foreground">
-      {items.map((item, index) => (
-        <li key={index}>{item}</li>
-      ))}
-    </ul>
-  )
-}
-
-function Table({ head, rows }: { head: string[]; rows: string[][] }) {
-  return (
-    <div className="overflow-x-auto rounded-lg border border-border">
-      <table className="w-full min-w-[32rem] text-left text-sm">
-        <thead className="bg-muted/50">
-          <tr>
-            {head.map((cell) => (
-              <th key={cell} className="px-3 py-2 font-medium text-foreground">
-                {cell}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, index) => (
-            <tr key={index} className="border-t border-border align-top">
-              {row.map((cell, cellIndex) => (
-                <td key={cellIndex} className="px-3 py-2">
-                  {cell}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-function EmailLink() {
-  return (
-    <a href={`mailto:${COMPANY.email}`} className="font-medium text-foreground underline underline-offset-4">
-      {COMPANY.email}
-    </a>
+    </PublicPage>
   )
 }
