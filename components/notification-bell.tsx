@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { EmptyState } from "@/components/empty-state"
 import { cn } from "@/lib/utils"
+import { notificationHref } from "@/lib/notification-links"
 import { useOptionalNotifications, type AdminNotification } from "@/lib/notifications-context"
 
 const ICON_BY_TYPE: Record<NotificationType, { icon: React.ComponentType<{ className?: string }>; className: string }> = {
@@ -27,6 +28,11 @@ const ICON_BY_TYPE: Record<NotificationType, { icon: React.ComponentType<{ class
   MONITOR_JOINED: { icon: UserPlusIcon, className: "text-primary" },
   TRIP_STATUS_CHANGED: { icon: RefreshCwIcon, className: "text-muted-foreground" },
   SYSTEM_ERROR: { icon: ServerCrashIcon, className: "text-destructive" },
+}
+
+export function NotificationTypeIcon({ type, className }: { type: NotificationType; className?: string }) {
+  const { icon: Icon, className: colorClassName } = ICON_BY_TYPE[type]
+  return <Icon className={cn("size-4 shrink-0", colorClassName, className)} />
 }
 
 export function NotificationBell() {
@@ -85,6 +91,13 @@ export function NotificationBell() {
             ))}
           </ul>
         )}
+        <div className="border-t p-1">
+          <Button variant="ghost" size="sm" className="w-full" asChild>
+            <Link href="/admin/notifications" onClick={() => setOpen(false)}>
+              Ver todas
+            </Link>
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   )
@@ -99,10 +112,10 @@ function NotificationRow({
   isNew: boolean
   onNavigate: () => void
 }) {
-  const { icon: Icon, className } = ICON_BY_TYPE[notification.type]
+  const href = notificationHref(notification)
   const content = (
     <div className={cn("flex gap-3 px-4 py-3 transition-colors hover:bg-muted/50", isNew && "bg-muted/40")}>
-      <Icon className={cn("mt-0.5 size-4 shrink-0", className)} />
+      <NotificationTypeIcon type={notification.type} className="mt-0.5" />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <p className="text-sm font-medium leading-snug">{notification.title}</p>
         <p className="text-sm text-muted-foreground">{notification.body}</p>
@@ -116,8 +129,8 @@ function NotificationRow({
 
   return (
     <li>
-      {notification.tripId ? (
-        <Link href={`/admin/trips/${notification.tripId}`} onClick={onNavigate}>
+      {href ? (
+        <Link href={href} onClick={onNavigate}>
           {content}
         </Link>
       ) : (

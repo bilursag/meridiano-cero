@@ -38,7 +38,11 @@ describe('NotificationBell', () => {
 
     expect(markAllSeen).toHaveBeenCalledOnce()
     expect(screen.getByText('Alerta en Bariloche 4°B')).toBeInTheDocument()
-    expect(screen.getByRole('link')).toHaveAttribute('href', '/admin/trips/trip-1')
+    expect(screen.getByRole('link', { name: /Alerta en Bariloche/ })).toHaveAttribute(
+      'href',
+      '/admin/trips/trip-1?tab=comunicados'
+    )
+    expect(screen.getByRole('link', { name: 'Ver todas' })).toHaveAttribute('href', '/admin/notifications')
     expect(screen.getByLabelText('Nueva')).toBeInTheDocument()
   })
 

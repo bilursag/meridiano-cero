@@ -11,6 +11,7 @@ const { describeUsers } = await import('@/lib/api/clerk-users')
 const { after } = await import('next/server')
 const {
   getAdminNotifications,
+  listAdminNotifications,
   notifyAnnouncement,
   notifyInBackground,
   notifyMonitorJoined,
@@ -136,5 +137,34 @@ describe('getAdminNotifications', () => {
     await getAdminNotifications('admin-1')
 
     expect(prismaMock.notification.count).toHaveBeenCalledWith({ where: { createdAt: { gt: createdAt } } })
+  })
+})
+
+describe('listAdminNotifications', () => {
+  const rows = (count: number) => Array.from({ length: count }, (_, i) => ({ id: `n-${i}` }))
+
+  it('returns a cursor to the next page when there are more rows than a page', async () => {
+    prismaMock.adminUser.findUnique.mockResolvedValue({ createdAt: new Date(0), notificationsSeenAt: null } as never)
+    prismaMock.notification.findMany.mockResolvedValue(rows(26) as never)
+
+    const result = await listAdminNotifications('admin-1', {})
+
+    expect(result.notifications).toHaveLength(25)
+    expect(result.nextCursor).toBe('n-24')
+    expect(prismaMock.notification.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: undefined, take: 26 })
+    )
+  })
+
+  it('continues after the cursor, filtered by type, and ends when the last page is short', async () => {
+    prismaMock.adminUser.findUnique.mockResolvedValue(null)
+    prismaMock.notification.findMany.mockResolvedValue(rows(3) as never)
+
+    const result = await listAdminNotifications('admin-1', { type: 'TRIP_ALERT', cursor: 'n-24' })
+
+    expect(result.nextCursor).toBeNull()
+    expect(prismaMock.notification.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { type: 'TRIP_ALERT' }, cursor: { id: 'n-24' }, skip: 1 })
+    )
   })
 })

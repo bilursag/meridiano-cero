@@ -52,7 +52,9 @@ Para armar una variante de un programa que ya existe (por ejemplo, el mismo dest
 
 ### Notificaciones
 
-La campana arriba a la derecha avisa cuando pasa algo importante en terreno: un coordinador reporta una **alerta** o un **logro**, un coordinador nuevo se une a un grupo, o un coordinador cambia el estado del grupo. El número rojo indica cuántas no has visto; al abrir la campana se marcan como vistas, y al hacer clic en una vas directo a la ficha del grupo.
+La campana arriba a la derecha avisa cuando pasa algo importante en terreno: un coordinador reporta una **alerta** o un **logro**, un coordinador nuevo se une a un grupo, o un coordinador cambia el estado del grupo. El número rojo indica cuántas no has visto; al abrir la campana se marcan como vistas, y al hacer clic en una vas directo a donde ocurrió el cambio: una alerta o un logro te lleva a los **Comunicados** del grupo, un coordinador nuevo a **Personas**, y un cambio de estado al **Resumen**.
+
+Para ver el historial completo, pulsa **Ver todas** al pie de la campana, o **Notificaciones** en el menú de tu usuario (abajo en la barra lateral, donde también está **Cuenta** para editar tu perfil y contraseña, y **Tema** para elegir entre claro, oscuro o el mismo del sistema). Ahí las notificaciones aparecen agrupadas por día, puedes filtrarlas por tipo y cargar las más antiguas con **Cargar más**.
 
 Las alertas además aparecen como un aviso rojo en pantalla apenas llegan (dentro de unos 30 segundos), aunque estés en otra sección del panel.
 

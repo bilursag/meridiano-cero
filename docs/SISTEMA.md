@@ -126,6 +126,8 @@ Los comunicados `INFO` (transiciones de itinerario) no generan notificación a p
 - **Feed compartido**: todos los admins ven las mismas notificaciones. El estado de lectura es por admin, con un solo timestamp (`AdminUser.notificationsSeenAt`): no leída = creada después de ese momento. Abrir la campana marca todo como visto. Un admin nuevo parte con contador en 0 (se usa su `createdAt` si nunca abrió la campana).
 - **Creación** (`lib/notifications.ts`): cada endpoint llama a `notifyInBackground(...)`, que corre dentro de `after()` de Next — se ejecuta después de enviar la respuesta y un error ahí se loguea sin afectar la petición del monitor.
 - **Entrega**: polling cada 30 s desde `lib/notifications-context.tsx` (pausado con la pestaña oculta, refresco inmediato al volver). No hay WebSockets/SSE.
+- **Página de historial** (`/admin/notifications`, enlace "Ver todas" al pie de la campana): historial completo agrupado por día, filtro por tipo y paginación por cursor de 25 en 25 ("Cargar más"). Al entrar marca todo como visto, pero mantiene destacadas las que eran nuevas al llegar.
+- **Destino de cada notificación** (`lib/notification-links.ts`, usado por la campana, la página y el toast): alertas y logros abren la ficha de la gira en la pestaña Comunicados, un coordinador nuevo en Personas y un cambio de estado en Resumen. La ficha acepta `?tab=resumen|itinerario|comunicados|personas`. Los errores del sistema no llevan enlace.
 
 ### 5.2 Registro de errores
 
@@ -187,7 +189,7 @@ REST convencional bajo `/api/v1`, protegido por los guards de `require-role.ts`,
 - `admin/programs/`, `admin/programs/[id]` — CRUD de programas; borrar valida que ninguna gira lo esté usando. `admin/programs/[id]/duplicate` (POST) crea la copia.
 - `admin/activity-templates/`, `announcement-templates/` — CRUD de plantillas.
 - `admin/imports/parse`, `admin/imports/commit` — soporte del importador masivo (§8): parsea el Excel subido y crea las giras confirmadas, fila por fila (un error en una fila no bloquea el resto del lote).
-- `admin/notifications` (GET: últimas 30 + contador de no leídas), `admin/notifications/seen` (POST: marca todo como visto) — ver §5.1.
+- `admin/notifications` (GET: últimas 30 + contador de no leídas), `admin/notifications/seen` (POST: marca todo como visto), `admin/notifications/history` (GET `?type=&cursor=`: historial paginado) — ver §5.1.
 - `errors` (POST, cualquier usuario autenticado: reporta un error del navegador) — ver §5.2.
 - `admin/schools/`, `admin/team/`, `admin/users/`, `admin/codes/`, `admin/reports/`, `admin/analytics/`, `admin/map/`, `admin/search/` — soporte de cada página admin correspondiente.
 - `auth/redeem` — canjea un `AccessCode` por una `TripMembership` (rate-limited).

@@ -96,6 +96,33 @@ export async function getAdminNotifications(clerkUserId: string) {
   return { notifications, unreadCount, seenAt }
 }
 
+export const NOTIFICATION_HISTORY_PAGE_SIZE = 25
+
+/** One page of the full history, newest first, for the notifications page. `cursor` is the last id of the previous page. */
+export async function listAdminNotifications(
+  clerkUserId: string,
+  { type, cursor }: { type?: NotificationType; cursor?: string }
+) {
+  const [admin, rows] = await Promise.all([
+    prisma.adminUser.findUnique({ where: { clerkUserId }, select: { createdAt: true, notificationsSeenAt: true } }),
+    prisma.notification.findMany({
+      where: type ? { type } : undefined,
+      // id breaks ties between notifications created in the same millisecond, keeping pages stable.
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: NOTIFICATION_HISTORY_PAGE_SIZE + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    }),
+  ])
+
+  const hasMore = rows.length > NOTIFICATION_HISTORY_PAGE_SIZE
+  const notifications = hasMore ? rows.slice(0, NOTIFICATION_HISTORY_PAGE_SIZE) : rows
+  return {
+    notifications,
+    nextCursor: hasMore ? notifications[notifications.length - 1].id : null,
+    seenAt: admin?.notificationsSeenAt ?? admin?.createdAt ?? new Date(),
+  }
+}
+
 export async function markAdminNotificationsSeen(clerkUserId: string) {
   await prisma.adminUser.update({
     where: { clerkUserId },
