@@ -23,6 +23,7 @@ enum TripStatus {
 
 enum ItineraryStatus {
   PENDING
+  IN_TRANSIT
   IN_PROGRESS
   COMPLETED
 }
@@ -169,6 +170,7 @@ model ItineraryItem {
   order               Int
   photoUrl            String?
   requirementsMessage String?
+  requirementsSentAt  DateTime?
 
   @@index([tripId])
 }

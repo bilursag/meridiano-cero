@@ -31,7 +31,7 @@ const TRANSITION_OPTIONS: { value: ActivityTransition; label: string }[] = [
 ]
 
 const STATUS_BY_TRANSITION: Record<ActivityTransition, ItineraryStatus> = {
-  EN_RUTA: 'PENDING',
+  EN_RUTA: 'IN_TRANSIT',
   EN_ACTIVIDAD: 'IN_PROGRESS',
   TERMINADA: 'COMPLETED',
 }

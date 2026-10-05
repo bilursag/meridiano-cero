@@ -15,6 +15,7 @@ function dayDate(startDate: string | Date, dayNumber: number) {
 function TimelineItem({ item, isLast }: { item: ItineraryItem; isLast: boolean }) {
   const done = item.status === 'COMPLETED'
   const active = item.status === 'IN_PROGRESS'
+  const enRoute = item.status === 'IN_TRANSIT'
 
   return (
     <div className="flex gap-4">
@@ -41,6 +42,11 @@ function TimelineItem({ item, isLast }: { item: ItineraryItem; isLast: boolean }
           {active && (
             <span className="text-xs font-bold bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
               EN CURSO
+            </span>
+          )}
+          {enRoute && (
+            <span className="text-xs font-bold bg-amber-500 text-white px-2 py-0.5 rounded-full">
+              EN RUTA
             </span>
           )}
         </div>
@@ -109,7 +115,7 @@ export default function ItineraryPage() {
                 },
                 {
                   label: 'Pendientes',
-                  count: itinerary.filter((i) => i.status === 'PENDING').length,
+                  count: itinerary.filter((i) => i.status === 'PENDING' || i.status === 'IN_TRANSIT').length,
                   color: 'text-muted-foreground',
                 },
               ].map(({ label, count, color }) => (
