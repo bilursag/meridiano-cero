@@ -75,7 +75,7 @@ Si la plataforma falla (por ejemplo, una página que no carga para un apoderado 
 Se usa desde el celular durante el viaje. Al entrar, la pantalla muestra:
 
 - **Transmitir ubicación**: un botón para activar el GPS. Mientras está activo, el grupo aparece en el mapa del administrador y de los apoderados, actualizándose cada 15 segundos.
-- **Actividad actual**: la próxima actividad del itinerario, con tres botones para avisar en qué etapa está el grupo — **En ruta**, **En actividad** (te pide subir una foto) y **Terminada**. Cada cambio de estado avisa automáticamente a los apoderados, sin que tengas que escribir nada.
+- **Actividad actual**: la próxima actividad del itinerario, con un solo botón que avanza paso a paso: **Enviar requisitos** (solo si la actividad tiene requisitos), **En ruta**, **En actividad** (te pide subir una foto) y **Terminar**. Cada paso avisa automáticamente a los apoderados, sin que tengas que escribir nada, y cambia el estado del grupo a "En ruta" o "En actividad". Si te equivocaste, toca **Deshacer** en la barra verde durante los 30 segundos siguientes: vuelve al paso anterior y borra el comunicado. Las actividades terminadas quedan como una línea verde en el itinerario.
 - **Itinerario completo**: todas las actividades del viaje agrupadas por día, con las mismas opciones de estado y foto para cada una.
 - **Publicar comunicado**: elegir un mensaje ya escrito (por ejemplo, "Llegamos al hotel" o "Actividad reprogramada por lluvia") y enviarlo a todos los apoderados del grupo. No se escribe texto libre — se elige entre las plantillas que dejó preparadas el administrador.
 
