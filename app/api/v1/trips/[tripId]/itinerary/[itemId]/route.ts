@@ -7,6 +7,7 @@ import { ApiError } from '@/lib/api/errors'
 import { requireTripWrite } from '@/lib/api/require-role'
 import { findItineraryItem } from '@/lib/api/itinerary'
 import { withApiHandler } from '@/lib/api/handler'
+import { tripStatusAfterActivity } from '@/lib/trip-status'
 
 const bodySchema = z.object({
   status: z.enum(ItineraryStatus).optional(),
@@ -30,10 +31,16 @@ export const PATCH = withApiHandler<{ tripId: string; itemId: string }>(async (r
 
   await findItineraryItem(tripId, itemId)
 
-  const updated = await prisma.itineraryItem.update({
-    where: { id: itemId },
-    data: parsed.data,
-  })
+  // The coordinator's "En ruta" / "En actividad" buttons also move the whole group between those statuses.
+  const trip = parsed.data.status
+    ? await prisma.trip.findUnique({ where: { id: tripId }, select: { status: true } })
+    : null
+  const tripStatus = trip && parsed.data.status ? tripStatusAfterActivity(parsed.data.status, trip.status) : null
+
+  const [updated] = await prisma.$transaction([
+    prisma.itineraryItem.update({ where: { id: itemId }, data: parsed.data }),
+    ...(tripStatus ? [prisma.trip.update({ where: { id: tripId }, data: { status: tripStatus } })] : []),
+  ])
 
   return NextResponse.json({ item: updated })
 })
