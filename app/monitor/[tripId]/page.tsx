@@ -194,6 +194,9 @@ export default function MonitorPage() {
 
     setApplyingTransition(null)
     void loadItinerary()
+    // The buttons also move the group between "En ruta" and "En actividad".
+    const tripRes = await fetch(`/api/v1/trips/${tripId}`)
+    if (tripRes.ok) setTrip((await tripRes.json()).trip)
   }
 
   function handleTransitionClick(item: ItineraryItem, transition: ActivityTransition) {
