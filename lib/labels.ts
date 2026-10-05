@@ -17,6 +17,7 @@ export const tripStatusLabels: Record<TripStatus, string> = {
 
 export const itineraryStatusLabels: Record<ItineraryStatus, string> = {
   PENDING: 'Pendiente',
+  IN_TRANSIT: 'En ruta',
   IN_PROGRESS: 'En curso',
   COMPLETED: 'Completado',
 }

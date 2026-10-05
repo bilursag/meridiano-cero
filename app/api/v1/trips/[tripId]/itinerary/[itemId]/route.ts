@@ -18,6 +18,8 @@ const bodySchema = z.object({
   description: z.string().trim().min(1).optional(),
   order: z.number().int().nonnegative().optional(),
   requirementsMessage: z.string().trim().min(1).nullable().optional(),
+  // Only cleared, to undo "Enviar requisitos"; sending goes through ./requirements.
+  requirementsSentAt: z.null().optional(),
 })
 
 export const PATCH = withApiHandler<{ tripId: string; itemId: string }>(async (request, { params }) => {

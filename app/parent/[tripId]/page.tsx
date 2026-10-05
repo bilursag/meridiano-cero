@@ -28,7 +28,7 @@ export default function ParentHome() {
   if (!trip) return <div className="p-8 text-center text-muted-foreground">Grupo no encontrado.</div>
 
   const currentActivity = itinerary.find((i) => i.status === 'IN_PROGRESS')
-  const nextActivity = itinerary.find((i) => i.status === 'PENDING')
+  const nextActivity = itinerary.find((i) => i.status === 'PENDING' || i.status === 'IN_TRANSIT')
   const highlighted = currentActivity ?? nextActivity
   const latestAnnouncement = announcements[0]
 
