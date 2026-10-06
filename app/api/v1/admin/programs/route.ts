@@ -8,10 +8,14 @@ import { withApiHandler } from '@/lib/api/handler'
 export const GET = withApiHandler(async () => {
   await requireAdmin()
 
-  const programs = await prisma.program.findMany({
-    include: { _count: { select: { items: true, trips: true } } },
-    orderBy: { name: 'asc' },
-  })
+  const [programs, lastDays] = await Promise.all([
+    prisma.program.findMany({
+      include: { _count: { select: { items: true, trips: true } } },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.programItem.groupBy({ by: ['programId'], _max: { dayNumber: true } }),
+  ])
+  const dayCountByProgram = new Map(lastDays.map((row) => [row.programId, row._max.dayNumber ?? 0]))
 
   const result = programs.map((program) => ({
     id: program.id,
@@ -19,6 +23,8 @@ export const GET = withApiHandler(async () => {
     description: program.description,
     itemCount: program._count.items,
     tripCount: program._count.trips,
+    // The last day with activities: how many days a trip needs for the whole program to fit.
+    dayCount: dayCountByProgram.get(program.id) ?? 0,
     createdAt: program.createdAt,
   }))
 
