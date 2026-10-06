@@ -188,6 +188,7 @@ export default function AdminSchedulePage() {
                   <TableHead className="sticky left-0 top-0 z-20 w-52 min-w-52 bg-background">Grupo</TableHead>
                   <TableHead className="sticky top-0 z-10 w-32 min-w-32 bg-background">Colegio</TableHead>
                   <TableHead className="sticky top-0 z-10 w-24 min-w-24 bg-background">Ejecutivo</TableHead>
+                  <TableHead className="sticky top-0 z-10 w-28 min-w-28 bg-background">Coordinador</TableHead>
                   <TableHead className="sticky top-0 z-10 w-12 min-w-12 bg-background">Pax</TableHead>
                   <TableHead className="sticky top-0 z-10 w-32 min-w-32 bg-background">Hotel</TableHead>
                   <TableHead className="sticky top-0 z-10 w-28 min-w-28 bg-background">In-Out</TableHead>
@@ -248,6 +249,9 @@ export default function AdminSchedulePage() {
                       </TableCell>
                       <TableCell className="w-24 min-w-24 whitespace-normal py-4 align-top text-muted-foreground">
                         {trip.salesExecutive || '—'}
+                      </TableCell>
+                      <TableCell className="w-28 min-w-28 whitespace-normal py-4 align-top text-muted-foreground">
+                        {trip.monitorNames.length ? trip.monitorNames.join(', ') : 'Sin coordinador'}
                       </TableCell>
                       <TableCell className="w-12 min-w-12 py-4 align-top">{trip.studentCount}</TableCell>
                       <TableCell className="w-32 min-w-32 whitespace-normal py-4 align-top text-muted-foreground">
@@ -338,6 +342,10 @@ function TripDetailPopoverContent({ trip }: { trip: ScheduleTrip }) {
         <div>
           <p className="text-xs text-muted-foreground">Ejecutivo</p>
           <p>{trip.salesExecutive ?? '—'}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Coordinador</p>
+          <p>{trip.monitorNames.length ? trip.monitorNames.join(', ') : '—'}</p>
         </div>
       </div>
       {dayNumbers.length > 0 && (
