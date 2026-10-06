@@ -24,8 +24,9 @@ import { FetchError } from '@/components/fetch-error'
 import { KNOWN_DESTINATIONS } from '@/lib/destinations'
 import type { ParsedImportResult, ParsedImportRow } from '@/lib/import/parse-planning-xlsx'
 import { chileDateKey, chileMidnightFromKey } from '@/lib/dates'
+import { endDateForDays, programLongerThanDates, tripDayCount } from '@/lib/import/program-length'
 
-type ProgramOption = { id: string; name: string }
+type ProgramOption = { id: string; name: string; dayCount: number }
 type CommitResult = { key: string; success: boolean; tripId?: string; error?: string }
 
 type RowState = ParsedImportRow & {
@@ -136,6 +137,29 @@ export default function AdminImportPage() {
   }
 
   const readyRows = rows.filter((r) => r.included && isRowReady(r))
+
+  /** Days of the program mapped to the row's code (0 until one is picked). */
+  function programDaysFor(row: RowState) {
+    const programId = programMapping[row.programCode]
+    return programs?.find((p) => p.id === programId)?.dayCount ?? 0
+  }
+
+  // A trip dated shorter than its program gets the whole program anyway, so its last days would fall
+  // after the trip ends (a planilla with the same Fecha in and Fecha out did exactly that).
+  function hasShortDates(row: RowState) {
+    return programLongerThanDates(row.startDate, row.endDate, programDaysFor(row))
+  }
+
+  function fitDatesToProgram(row: RowState) {
+    const endDate = row.startDate ? endDateForDays(row.startDate, programDaysFor(row)) : null
+    if (endDate) updateRow(row.key, { endDate })
+  }
+
+  const shortDateRows = rows.filter((row) => row.included && hasShortDates(row))
+
+  function fitAllDatesToPrograms() {
+    for (const row of shortDateRows) fitDatesToProgram(row)
+  }
 
   const filteredRows = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -385,6 +409,7 @@ export default function AdminImportPage() {
                       const ready = isRowReady(row)
                       const result = results[row.key]
                       const destinationIds = resolveDestinationIds(row)
+                      const shortDates = hasShortDates(row)
                       return (
                         <TableRow key={row.key} className={!ready ? 'opacity-60' : undefined}>
                           <TableCell>
@@ -435,13 +460,30 @@ export default function AdminImportPage() {
                               onChange={(e) => updateRow(row.key, { startDate: fromDateInputValue(e.target.value) })}
                             />
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="align-top">
                             <Input
                               type="date"
-                              className="h-8 w-36"
+                              className={`h-8 w-36 ${shortDates ? 'border-amber-500' : ''}`}
                               value={toDateInputValue(row.endDate)}
                               onChange={(e) => updateRow(row.key, { endDate: fromDateInputValue(e.target.value) })}
                             />
+                            {shortDates ? (
+                              <div className="mt-1 flex w-36 flex-col items-start text-[11px] leading-4 text-amber-700 dark:text-amber-400">
+                                <span>
+                                  {tripDayCount(row.startDate, row.endDate) === 1
+                                    ? '1 día'
+                                    : `${tripDayCount(row.startDate, row.endDate)} días`}
+                                  ; el programa tiene {programDaysFor(row)}.
+                                </span>
+                                <button
+                                  type="button"
+                                  className="font-medium underline underline-offset-2"
+                                  onClick={() => fitDatesToProgram(row)}
+                                >
+                                  Ajustar a {programDaysFor(row)} días
+                                </button>
+                              </div>
+                            ) : null}
                           </TableCell>
                           <TableCell className="text-muted-foreground">{row.hotel || '—'}</TableCell>
                           <TableCell className="text-muted-foreground">
@@ -496,6 +538,24 @@ export default function AdminImportPage() {
                 </Table>
               </div>
             </Card>
+
+            {shortDateRows.length > 0 ? (
+              <div className="flex flex-col gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                <div className="flex items-start gap-2">
+                  <AlertTriangleIcon className="mt-0.5 size-4 shrink-0" />
+                  <p>
+                    {shortDateRows.length === 1
+                      ? '1 grupo tiene fechas más cortas que su programa.'
+                      : `${shortDateRows.length} grupos tienen fechas más cortas que su programa.`}{' '}
+                    Las actividades de los días que sobran quedarían después del término del grupo. Revisa la fecha de
+                    término en la planilla o ajústala a la duración del programa.
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" className="shrink-0 bg-background" onClick={fitAllDatesToPrograms}>
+                  Ajustar {shortDateRows.length === 1 ? 'fecha' : `las ${shortDateRows.length} fechas`} al programa
+                </Button>
+              </div>
+            ) : null}
 
             <div className="flex justify-end">
               <Button
