@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { addDays, eachDayOfInterval, format, isSameDay } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { InfoIcon, LayoutGridIcon } from 'lucide-react'
+import { AlertTriangleIcon, InfoIcon, LayoutGridIcon } from 'lucide-react'
 import type { DateRange } from 'react-day-picker'
 import { SiteHeader } from '@/components/site-header'
 import { EmptyState } from '@/components/empty-state'
@@ -37,6 +37,24 @@ const MAX_RANGE_DAYS = 62
 
 function itemDate(trip: ScheduleTrip, dayNumber: number) {
   return addDays(new Date(trip.startDate), dayNumber - 1)
+}
+
+/** The itinerary's last day number (0 without activities). */
+function lastItineraryDay(trip: ScheduleTrip) {
+  return Math.max(0, ...trip.itineraryItems.map((item) => item.dayNumber))
+}
+
+/**
+ * The last date the grid shows for a trip: its end date, or later when the itinerary runs past it
+ * (a program longer than the trip's dates). Those activities exist and the trip page lists them,
+ * so the grid shows them too, flagged, instead of silently leaving them out.
+ */
+function shownEndDate(trip: ScheduleTrip) {
+  const end = new Date(trip.endDate)
+  const lastDay = lastItineraryDay(trip)
+  if (lastDay === 0) return end
+  const lastItemDate = itemDate(trip, lastDay)
+  return lastItemDate > end ? lastItemDate : end
 }
 
 function defaultRange(): DateRange {
@@ -109,7 +127,7 @@ export default function AdminSchedulePage() {
   const days = useMemo(() => {
     if (!filteredTrips.length || !dateRange?.from || !dateRange?.to) return []
     const starts = filteredTrips.map((trip) => new Date(trip.startDate).getTime())
-    const ends = filteredTrips.map((trip) => new Date(trip.endDate).getTime())
+    const ends = filteredTrips.map((trip) => shownEndDate(trip).getTime())
     // Clamp to the selected range so a trip that runs longer than the picked
     // dates doesn't blow the grid out past what the user actually asked to see.
     const start = Math.max(Math.min(...starts), dateRange.from.getTime())
@@ -188,6 +206,8 @@ export default function AdminSchedulePage() {
                 {filteredTrips.map((trip) => {
                   const start = new Date(trip.startDate)
                   const end = new Date(trip.endDate)
+                  const shownEnd = shownEndDate(trip)
+                  const itineraryDays = lastItineraryDay(trip)
                   return (
                     <TableRow key={trip.id}>
                       <TableCell className="sticky left-0 z-10 w-52 min-w-52 whitespace-normal bg-background py-4 align-top font-medium">
@@ -213,6 +233,15 @@ export default function AdminSchedulePage() {
                         <p className="text-xs font-normal text-muted-foreground">
                           Día {trip.currentDay} de {trip.totalDays}
                         </p>
+                        {itineraryDays > trip.totalDays ? (
+                          <Link
+                            href={`/admin/trips/${trip.id}`}
+                            className="mt-1.5 flex items-start gap-1 text-xs font-normal text-amber-700 hover:underline dark:text-amber-400"
+                          >
+                            <AlertTriangleIcon className="mt-0.5 size-3 shrink-0" />
+                            El itinerario tiene {itineraryDays} días y el grupo {trip.totalDays}. Revisa las fechas.
+                          </Link>
+                        ) : null}
                       </TableCell>
                       <TableCell className="w-32 min-w-32 whitespace-normal py-4 align-top text-muted-foreground">
                         {trip.school.name}
@@ -228,16 +257,22 @@ export default function AdminSchedulePage() {
                         {format(start, 'd MMM', { locale: es })}–{format(end, 'd MMM', { locale: es })}
                       </TableCell>
                       {days.map((day) => {
-                        if (day < start || day > end) {
+                        if (day < start || day > shownEnd) {
                           return <TableCell key={day.toISOString()} className="w-44 min-w-44 bg-muted/20" />
                         }
                         const dayItems = trip.itineraryItems.filter((item) => isSameDay(itemDate(trip, item.dayNumber), day))
+                        const pastEnd = day > end
                         return (
                           <TableCell
                             key={day.toISOString()}
-                            className="w-44 min-w-44 max-w-44 whitespace-normal py-4 align-top text-xs"
+                            className={`w-44 min-w-44 max-w-44 whitespace-normal py-4 align-top text-xs ${pastEnd ? 'bg-amber-50 dark:bg-amber-950/30' : ''}`}
                           >
                             <div className="flex flex-col gap-2">
+                              {pastEnd ? (
+                                <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400">
+                                  Después del término
+                                </span>
+                              ) : null}
                               {dayItems.map((item, idx) => (
                                 <span key={idx} className="flex items-start gap-1.5">
                                   <span className="shrink-0 tabular-nums text-muted-foreground">{item.time}</span>
