@@ -13,7 +13,6 @@ import { Card } from '@/components/ui/card'
 import { GlobalFilters } from '@/components/global-filters'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
 
@@ -121,7 +120,7 @@ export default function AdminSchedulePage() {
   const spanTooLarge = days.length > MAX_RANGE_DAYS
 
   return (
-    <TooltipProvider delayDuration={200}>
+    <>
       <SiteHeader title="Organizador" subtitle="Grilla de actividades por día" />
       <div className="flex min-h-0 flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
         <GlobalFilters
@@ -159,19 +158,25 @@ export default function AdminSchedulePage() {
           />
         ) : filteredTrips.length ? (
           <Card className="min-h-0 flex-1 overflow-hidden">
-            <Table containerClassName="h-full" className="h-full">
+            {/* w-max lets every column keep its width and the grid scroll sideways instead of
+                squeezing the days; the styled scrollbars stay visible on macOS, where overlay
+                scrollbars would hide that there are more days to the right. */}
+            <Table
+              containerClassName="h-full [&::-webkit-scrollbar]:size-2.5 [&::-webkit-scrollbar-corner]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent"
+              className="w-max min-w-full"
+            >
               <TableHeader>
                 <TableRow>
-                  <TableHead className="sticky left-0 top-0 z-20 w-40 bg-background">Grupo</TableHead>
-                  <TableHead className="sticky top-0 z-10 w-28 bg-background">Colegio</TableHead>
-                  <TableHead className="sticky top-0 z-10 w-24 bg-background">Ejecutivo</TableHead>
-                  <TableHead className="sticky top-0 z-10 w-14 bg-background">Pax</TableHead>
-                  <TableHead className="sticky top-0 z-10 w-28 bg-background">Hotel</TableHead>
-                  <TableHead className="sticky top-0 z-10 w-28 bg-background">In-Out</TableHead>
+                  <TableHead className="sticky left-0 top-0 z-20 w-52 min-w-52 bg-background">Grupo</TableHead>
+                  <TableHead className="sticky top-0 z-10 w-32 min-w-32 bg-background">Colegio</TableHead>
+                  <TableHead className="sticky top-0 z-10 w-24 min-w-24 bg-background">Ejecutivo</TableHead>
+                  <TableHead className="sticky top-0 z-10 w-12 min-w-12 bg-background">Pax</TableHead>
+                  <TableHead className="sticky top-0 z-10 w-32 min-w-32 bg-background">Hotel</TableHead>
+                  <TableHead className="sticky top-0 z-10 w-28 min-w-28 bg-background">In-Out</TableHead>
                   {days.map((day) => (
                     <TableHead
                       key={day.toISOString()}
-                      className="sticky top-0 z-10 whitespace-nowrap bg-background text-center"
+                      className="sticky top-0 z-10 w-44 min-w-44 whitespace-nowrap bg-background text-center"
                     >
                       <span className="block capitalize">{format(day, 'EEE', { locale: es })}</span>
                       {format(day, 'd MMM', { locale: es })}
@@ -185,22 +190,17 @@ export default function AdminSchedulePage() {
                   const end = new Date(trip.endDate)
                   return (
                     <TableRow key={trip.id}>
-                      <TableCell className="sticky left-0 z-10 w-40 bg-background py-5 font-medium">
-                        <div className="flex items-center gap-1">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Link href={`/admin/trips/${trip.id}`} className="block min-w-0 truncate hover:underline">
-                                {trip.name}
-                              </Link>
-                            </TooltipTrigger>
-                            <TooltipContent>{trip.name}</TooltipContent>
-                          </Tooltip>
+                      <TableCell className="sticky left-0 z-10 w-52 min-w-52 whitespace-normal bg-background py-4 align-top font-medium">
+                        <div className="flex items-start gap-1">
+                          <Link href={`/admin/trips/${trip.id}`} className="min-w-0 hover:underline">
+                            {trip.name}
+                          </Link>
                           <Popover>
                             <PopoverTrigger asChild>
                               <button
                                 type="button"
                                 aria-label={`Más detalle de ${trip.name}`}
-                                className="shrink-0 text-muted-foreground hover:text-foreground"
+                                className="mt-0.5 shrink-0 text-muted-foreground hover:text-foreground"
                               >
                                 <InfoIcon className="size-3.5" />
                               </button>
@@ -214,54 +214,34 @@ export default function AdminSchedulePage() {
                           Día {trip.currentDay} de {trip.totalDays}
                         </p>
                       </TableCell>
-                      <TableCell className="w-28 py-5 text-muted-foreground">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="block truncate">{trip.school.name}</span>
-                          </TooltipTrigger>
-                          <TooltipContent>{trip.school.name}</TooltipContent>
-                        </Tooltip>
+                      <TableCell className="w-32 min-w-32 whitespace-normal py-4 align-top text-muted-foreground">
+                        {trip.school.name}
                       </TableCell>
-                      <TableCell className="w-24 py-5 text-muted-foreground">
-                        <span className="block truncate">{trip.salesExecutive || '—'}</span>
+                      <TableCell className="w-24 min-w-24 whitespace-normal py-4 align-top text-muted-foreground">
+                        {trip.salesExecutive || '—'}
                       </TableCell>
-                      <TableCell className="w-14 py-5">{trip.studentCount}</TableCell>
-                      <TableCell className="w-28 py-5 text-muted-foreground">
-                        {trip.hotel ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="block truncate">{trip.hotel}</span>
-                            </TooltipTrigger>
-                            <TooltipContent>{trip.hotel}</TooltipContent>
-                          </Tooltip>
-                        ) : (
-                          '—'
-                        )}
+                      <TableCell className="w-12 min-w-12 py-4 align-top">{trip.studentCount}</TableCell>
+                      <TableCell className="w-32 min-w-32 whitespace-normal py-4 align-top text-muted-foreground">
+                        {trip.hotel ?? '—'}
                       </TableCell>
-                      <TableCell className="w-28 whitespace-nowrap py-5 text-muted-foreground">
+                      <TableCell className="w-28 min-w-28 whitespace-nowrap py-4 align-top text-muted-foreground">
                         {format(start, 'd MMM', { locale: es })}–{format(end, 'd MMM', { locale: es })}
                       </TableCell>
                       {days.map((day) => {
                         if (day < start || day > end) {
-                          return <TableCell key={day.toISOString()} className="bg-muted/20" />
+                          return <TableCell key={day.toISOString()} className="w-44 min-w-44 bg-muted/20" />
                         }
                         const dayItems = trip.itineraryItems.filter((item) => isSameDay(itemDate(trip, item.dayNumber), day))
                         return (
-                          <TableCell key={day.toISOString()} className="w-32 max-w-32 py-5 align-top text-xs">
-                            <div className="flex flex-col gap-1.5">
+                          <TableCell
+                            key={day.toISOString()}
+                            className="w-44 min-w-44 max-w-44 whitespace-normal py-4 align-top text-xs"
+                          >
+                            <div className="flex flex-col gap-2">
                               {dayItems.map((item, idx) => (
                                 <span key={idx} className="flex items-start gap-1.5">
-                                  <span className="shrink-0 text-muted-foreground">–</span>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <span className="line-clamp-3 min-w-0 cursor-default">
-                                        {item.title} <span className="text-muted-foreground">({item.time})</span>
-                                      </span>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      {item.title} ({item.time})
-                                    </TooltipContent>
-                                  </Tooltip>
+                                  <span className="shrink-0 tabular-nums text-muted-foreground">{item.time}</span>
+                                  <span className="min-w-0 break-words">{item.title}</span>
                                 </span>
                               ))}
                             </div>
@@ -282,7 +262,7 @@ export default function AdminSchedulePage() {
           />
         )}
       </div>
-    </TooltipProvider>
+    </>
   )
 }
 
