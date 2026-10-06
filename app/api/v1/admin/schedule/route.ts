@@ -5,6 +5,7 @@ import { ApiError } from '@/lib/api/errors'
 import { requireAdmin } from '@/lib/api/require-role'
 import { withApiHandler } from '@/lib/api/handler'
 import { describeUsers } from '@/lib/api/clerk-users'
+import { chileMidnightFromKey } from '@/lib/dates'
 
 // Kept in sync with MAX_RANGE_DAYS in app/admin/schedule/page.tsx — the grid
 // itself is the real constraint, no point letting the API accept more than
@@ -18,8 +19,10 @@ function parseRange(fromParam: string | null, toParam: string | null): { start: 
   const defaultEnd = new Date(defaultStart)
   defaultEnd.setDate(defaultEnd.getDate() + DEFAULT_RANGE_DAYS)
 
-  const start = fromParam && !Number.isNaN(Date.parse(fromParam)) ? new Date(fromParam) : defaultStart
-  const end = toParam && !Number.isNaN(Date.parse(toParam)) ? new Date(toParam) : defaultEnd
+  // The page sends calendar dates ("YYYY-MM-DD"). Read as UTC midnight they fell three or four hours
+  // before trips' start (stored as Chile midnight), which left out a trip starting on the last day.
+  const start = (fromParam && chileMidnightFromKey(fromParam)) || defaultStart
+  const end = (toParam && chileMidnightFromKey(toParam)) || defaultEnd
 
   if (end < start) throw new ApiError('VALIDATION_ERROR', 'La fecha final debe ser igual o posterior a la inicial.')
 
@@ -42,7 +45,12 @@ export const GET = withApiHandler(async (request) => {
     include: {
       school: { select: { name: true } },
       program: { select: { name: true } },
-      itineraryItems: { select: { dayNumber: true, title: true, time: true }, orderBy: { dayNumber: 'asc' } },
+      // Same order as the trip's itinerary. Sorting by day alone left each day's activities in
+      // whatever order Postgres returned them, which changes every time an activity is updated.
+      itineraryItems: {
+        select: { dayNumber: true, title: true, time: true },
+        orderBy: [{ dayNumber: 'asc' }, { order: 'asc' }],
+      },
       memberships: { where: { role: Role.MONITOR }, select: { clerkUserId: true } },
     },
     orderBy: { startDate: 'asc' },
