@@ -1,15 +1,25 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
 
-const isProtectedRoute = createRouteMatcher([
-  '/parent(.*)',
-  '/monitor(.*)',
-  '/admin(.*)',
-  '/redeem(.*)',
-  '/api/v1(.*)',
-])
+const isProtectedRoute = createRouteMatcher(['/parent(.*)', '/monitor(.*)', '/admin(.*)', '/redeem(.*)'])
+const isApiRoute = createRouteMatcher(['/api/v1(.*)'])
 
 export default clerkMiddleware(
   async (auth, req) => {
+    // The API answers JSON, also when there is no session. auth.protect() redirected API calls to
+    // the sign-in page, which fetch followed: the mobile app got an HTML page as 200 OK instead of a
+    // 401 it could act on (it signs the user out and back to sign-in). Same { error } shape as
+    // lib/api/errors, written out here so the proxy doesn't import Prisma.
+    if (isApiRoute(req)) {
+      const { userId } = await auth()
+      if (!userId) {
+        return NextResponse.json(
+          { error: { code: 'UNAUTHENTICATED', message: 'Tu sesión expiró. Inicia sesión de nuevo.' } },
+          { status: 401 }
+        )
+      }
+      return
+    }
     if (isProtectedRoute(req)) await auth.protect()
   },
   {
