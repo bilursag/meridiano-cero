@@ -177,7 +177,7 @@ export function ProjectGraph({
         target: e.to,
         animated: depends,
         style: {
-          stroke: depends ? 'var(--color-brand-orange)' : 'var(--muted-foreground)',
+          stroke: depends ? 'var(--color-brand-orange)' : 'var(--color-muted-foreground)',
           strokeWidth: touches ? 2.5 : 1.5,
           strokeDasharray: depends ? undefined : '4 4',
           opacity: selected && !touches ? 0.15 : 0.85,
@@ -211,12 +211,15 @@ export function ProjectGraph({
       onPaneClick={() => onSelect(null)}
     >
       <Background gap={24} size={1} />
-      <Controls showInteractive={false} />
+      {/* Above every node, even a selected one in a long column (selection raises nodes to z-index 1000). */}
+      <Controls showInteractive={false} style={{ zIndex: 1010 }} />
       <MiniMap
         pannable
         zoomable
         nodeColor={(node) => (node.type === 'card' ? LAYER_COLORS[(node.data as CardNodeData).card.layer] : 'transparent')}
-        className="hidden! xl:block!"
+        bgColor="var(--color-card)"
+        style={{ zIndex: 1010 }}
+        className="hidden! overflow-hidden rounded-lg border shadow-md xl:block!"
       />
     </ReactFlow>
   )
