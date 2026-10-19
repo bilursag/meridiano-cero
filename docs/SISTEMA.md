@@ -99,6 +99,7 @@ Sidebar con estas secciones (`components/app-sidebar.tsx`):
 - **Mensajes** (`/admin/messages`) — CRUD de `AnnouncementTemplate` — plantillas que el monitor puede enviar sin redactar texto libre.
 - **Actividades** (`/admin/activities`) — CRUD de `ActivityTemplate` — actividades genéricas reutilizables al armar el itinerario de una gira o un programa.
 - **Configuración** / **Ayuda** — Cuenta del administrador (Clerk) / FAQ y soporte.
+- **Proyecto** (`/admin/proyecto`) — El tablero de Trello del equipo (Scrum) como grafo interactivo (React Flow): una columna por sprint o por épica, un nodo por tarjeta con color por capa, y líneas para "Depende de" (naranjas, animadas) y para la tarjeta pendiente que completa una funcionalidad (punteadas). El panel lateral muestra lo que está en curso y los últimos cambios; al tocar una tarjeta, su historia, criterios, código y pantallazos. `lib/trello.ts` lee el tablero en el servidor (caché de 5 min) con `TRELLO_API_KEY`, `TRELLO_TOKEN` (solo lectura) y `TRELLO_BOARD_ID`; las imágenes pasan por `api/v1/admin/project/attachments/...` porque Trello solo las entrega con autenticación. La distribución en columnas vive en `lib/project-layout.ts` (con tests).
 
 **Patrones de UI consistentes en todo el panel:**
 - Listas como tabla con búsqueda y filtros globales en cliente (`components/global-filters.tsx`, sin endpoints nuevos), aplicados hoy en Giras, Reportes, Programas, Colegios, Mensajes, Actividades, Equipo, Usuarios, Códigos y Mapa.

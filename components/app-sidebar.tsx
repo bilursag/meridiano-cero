@@ -18,6 +18,7 @@ import {
   IconSearch,
   IconSettings,
   IconTicket,
+  IconTopologyStar3,
   IconUserCog,
   IconUsers,
 } from "@tabler/icons-react"
@@ -64,6 +65,7 @@ const data = {
     avatar: "",
   },
   navSecondary: [
+    { title: "Proyecto", url: "/admin/proyecto", icon: IconTopologyStar3 },
     { title: "Configuración", url: "/admin/settings", icon: IconSettings },
     { title: "Ayuda", url: "/admin/help", icon: IconHelp },
   ],
