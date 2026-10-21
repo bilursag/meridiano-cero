@@ -383,7 +383,13 @@ export default function AdminTripDetailPage() {
     })
     setInvitingStudent(false)
     if (res.ok) {
-      toast.success('Invitación enviada.')
+      const data = await res.json()
+      if (data.result === 'added') {
+        toast.success('Ese correo ya tenía cuenta: quedó agregado al grupo.')
+        void load()
+      } else {
+        toast.success(data.resent ? 'Invitación reenviada.' : 'Invitación enviada.')
+      }
       setStudentEmail('')
       setInviteStudentOpen(false)
     } else {
@@ -801,8 +807,9 @@ export default function AdminTripDetailPage() {
                     onChange={(e) => setStudentEmail(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Se enviará una invitación por correo. Al registrarse con ese enlace, queda asociado a
-                    este grupo con acceso de solo lectura (itinerario, ubicación y comunicados).
+                    Si ese correo ya tiene cuenta, queda asociado a este grupo de inmediato. Si no, se
+                    enviará una invitación por correo y queda asociado al registrarse con ese enlace. En
+                    ambos casos tiene acceso de solo lectura (itinerario, ubicación y comunicados).
                   </p>
                   {inviteStudentError ? <p className="text-sm text-destructive">{inviteStudentError}</p> : null}
                 </div>
