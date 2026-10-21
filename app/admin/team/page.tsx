@@ -90,7 +90,13 @@ export default function AdminTeamPage() {
     })
     setInviting(false)
     if (res.ok) {
-      toast.success('Invitación enviada.')
+      const data = await res.json()
+      if (data.result === 'granted') {
+        toast.success('Ese correo ya tenía cuenta: ahora es administrador.')
+        void load()
+      } else {
+        toast.success(data.resent ? 'Invitación reenviada.' : 'Invitación enviada.')
+      }
       setEmail('')
       setInviteOpen(false)
     } else {
@@ -181,8 +187,9 @@ export default function AdminTeamPage() {
               <DialogHeader>
                 <DialogTitle>Invitar administrador</DialogTitle>
                 <DialogDescription>
-                  Se enviará una invitación por correo. Al registrarse con ese enlace, su acceso de
-                  administrador se activa automáticamente.
+                  Si ese correo ya tiene cuenta, su acceso de administrador se activa de inmediato.
+                  Si no, se enviará una invitación por correo y el acceso se activa al registrarse
+                  con ese enlace.
                 </DialogDescription>
               </DialogHeader>
               <div className="flex flex-col gap-2">

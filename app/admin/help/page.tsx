@@ -16,7 +16,7 @@ const FAQS = [
   {
     question: '¿Cómo invito a otro administrador?',
     answer:
-      'En "Equipo" usa el botón "Invitar administrador". La persona invitada recibe un correo y, al registrarse con ese enlace, su acceso de administrador se activa automáticamente.',
+      'En "Equipo" usa el botón "Invitar administrador". Si ese correo ya tiene cuenta, su acceso de administrador se activa de inmediato. Si no, la persona recibe un correo y, al registrarse con ese enlace, su acceso se activa automáticamente. Invitar de nuevo el mismo correo reenvía la invitación.',
   },
   {
     question: '¿Por qué un grupo no aparece en el mapa operativo?',
