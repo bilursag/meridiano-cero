@@ -80,6 +80,8 @@ Todas las rutas bajo `/admin`, `/parent`, `/monitor`, `/redeem` y `/api/v1` exig
 
 El primer `AdminUser` de una instalación nueva se otorga a mano con `npx tsx scripts/seed-admin.ts <email>` (contra development; anteponer `ENV_FILE=.env.prod` para producción — el script imprime a qué base apunta) — no hay un flujo de auto-registro para admins. El usuario tiene que haberse registrado antes en esa instancia de Clerk.
 
+La cuenta con la que los revisores de Google Play y App Store entran a la app se crea con `ENV_FILE=.env.prod npx tsx scripts/seed-review-account.ts <email>`: la deja como coordinador y apoderado de una gira de demostración en curso e imprime una contraseña nueva. Volver a correrlo antes de cada revisión recrea la gira en torno a hoy.
+
 ## 5. Panel de administración (`/admin`)
 
 Sidebar con estas secciones (`components/app-sidebar.tsx`):
