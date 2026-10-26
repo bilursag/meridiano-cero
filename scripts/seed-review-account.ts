@@ -1,6 +1,4 @@
-// Defaults to .env (development). Run with ENV_FILE=.env.prod to target production.
-const envFile = process.env.ENV_FILE ?? '.env'
-process.loadEnvFile(envFile)
+import './load-env'
 import { randomBytes } from 'node:crypto'
 import { createClerkClient } from '@clerk/backend'
 import { AnnouncementType, ItineraryStatus, PrismaClient, Role, TripStatus } from '@prisma/client'
@@ -87,9 +85,6 @@ async function main() {
     console.error('Usage: [ENV_FILE=.env.prod] npx tsx scripts/seed-review-account.ts <email>')
     process.exit(1)
   }
-
-  const dbHost = new URL(process.env.DATABASE_URL!).host
-  console.log(`Using ${envFile} → database ${dbHost}`)
 
   // Base64url, 24 characters: long enough for the 15-character minimum and never in a breach list.
   const password = randomBytes(18).toString('base64url')

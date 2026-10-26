@@ -25,7 +25,7 @@ Este repo es la app web (Next.js 16, App Router). Existe además una app móvil 
 - **`.env` local = siempre development** (base Neon de desarrollo, instancia de Clerk de prueba). No se cambia a producción.
 - **Producción vive solo en Vercel** (Settings → Environment Variables, entorno *Production*). El entorno *Preview* (deploys de ramas/PRs) debe apuntar a la base de desarrollo, nunca a la de producción.
 - **Las migraciones se aplican al desplegar**: `npm run build` es `prisma migrate deploy && next build`, así que cada deploy migra la base de *su* entorno usando `DIRECT_URL`. Esa variable tiene que existir en Vercel para Production y Preview. Correr `npm run build` en local migra la base de desarrollo del `.env`.
-- **Comandos puntuales contra producción** usan un archivo aparte, `.env.prod` (ignorado por git), cargado explícitamente — p. ej. `ENV_FILE=.env.prod npx tsx scripts/seed-admin.ts <email>`, o `node --env-file=.env.prod node_modules/.bin/prisma migrate status`. No usar los nombres `.env.production` / `.env.production.local`: Next los carga solo en cada `next build` local.
+- **Comandos puntuales contra producción** usan un archivo aparte, `.env.prod` (ignorado por git), cargado explícitamente — p. ej. `ENV_FILE=.env.prod npx tsx scripts/seed-admin.ts <email>`, o `node --env-file=.env.prod node_modules/.bin/prisma migrate status`. No usar los nombres `.env.production` / `.env.production.local`: Next los carga solo en cada `next build` local. `vercel env pull` deja vacías las variables sensibles (`DATABASE_URL`, `DIRECT_URL`): hay que pegarlas desde Neon. Los scripts cargan el archivo con `scripts/load-env.ts`, que pisa lo que Prisma ya leyó de `.env` y se detiene si la URL de la base no es válida.
 
 ## 3. Modelo de datos (Prisma)
 
