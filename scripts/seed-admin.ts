@@ -1,6 +1,4 @@
-// Defaults to .env (development). Run with ENV_FILE=.env.prod to target production.
-const envFile = process.env.ENV_FILE ?? '.env'
-process.loadEnvFile(envFile)
+import './load-env'
 import { createClerkClient } from '@clerk/backend'
 import { PrismaClient } from '@prisma/client'
 
@@ -13,9 +11,6 @@ async function main() {
     console.error('Usage: [ENV_FILE=.env.prod] npx tsx scripts/seed-admin.ts <email>')
     process.exit(1)
   }
-
-  const dbHost = new URL(process.env.DATABASE_URL!).host
-  console.log(`Using ${envFile} → database ${dbHost}`)
 
   const user = (await clerk.users.getUserList({ emailAddress: [email] })).data[0]
   if (!user) throw new Error(`No Clerk user found for ${email}`)
