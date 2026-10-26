@@ -6,10 +6,10 @@ import { COMPANY } from '@/lib/company'
 // so it is the single source of truth — keep it in sync with what the platform actually collects.
 export const metadata: Metadata = {
   title: 'Política de privacidad · Meridiano Cero',
-  description: 'Cómo Meridiano Cero trata los datos personales en su plataforma de giras de estudio y su app móvil.',
+  description: 'Cómo Meridiano Cero trata los datos personales en su plataforma de giras de estudio y su app móvil MeridianoGo.',
 }
 
-const LAST_UPDATED = '3 de octubre de 2026'
+const LAST_UPDATED = '26 de octubre de 2026'
 
 const collectedData = [
   {
@@ -63,10 +63,9 @@ const providers = [
 ]
 
 const retention = [
-  ['Historial de ubicación del grupo', '30 días después del término de la gira'],
-  ['Fotos y avisos de la gira', '12 meses después del término de la gira'],
-  ['Itinerario y datos generales de la gira', 'Mientras exista la relación con el colegio, y luego el plazo que exija la ley'],
-  ['Cuenta de usuario', 'Hasta que el usuario pida eliminarla, o 24 meses sin actividad'],
+  ['Historial de ubicación, fotos y avisos de la gira', 'Mientras dure la relación del colegio con Meridiano Cero, o hasta que el titular pida eliminarlos'],
+  ['Itinerario y datos generales de la gira', 'Mientras dure la relación del colegio con Meridiano Cero, y luego el plazo que exija la ley'],
+  ['Cuenta de usuario', 'Hasta que el usuario la elimine desde la app o pida eliminarla'],
   ['Registros técnicos y de errores', '12 meses'],
 ]
 
@@ -83,7 +82,7 @@ export default function PrivacyPolicyPage() {
           <List
             items={[
               'La plataforma web de gestión de giras de estudio, en app.meridianocero.cl.',
-              'La aplicación móvil Meridiano Cero para Android y iOS.',
+              'La aplicación móvil MeridianoGo para Android y iOS.',
             ]}
           />
           <p>
@@ -210,7 +209,10 @@ export default function PrivacyPolicyPage() {
         </Section>
 
         <Section title="8. Cuánto tiempo conservamos los datos">
-          <p>Conservamos los datos solo mientras sirven para la gira o para cumplir obligaciones legales.</p>
+          <p>
+            Conservamos los registros de las giras mientras el colegio mantenga su relación con Meridiano Cero, porque
+            forman parte de su historial. Cualquier titular puede pedir antes que eliminemos sus datos (sección 10).
+          </p>
           <Table head={['Datos', 'Plazo']} rows={retention} />
           <p>
             Al eliminar una gira se borran también su itinerario, sus avisos, sus fotos, su historial de ubicación y los

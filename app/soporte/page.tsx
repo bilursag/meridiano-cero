@@ -7,7 +7,7 @@ import { COMPANY } from '@/lib/company'
 // (this page's #eliminar-cuenta section). Keep the steps in sync with the mobile app.
 export const metadata: Metadata = {
   title: 'Soporte · Meridiano Cero',
-  description: 'Ayuda para usar la app de Meridiano Cero: acceso a la gira, contraseña, ubicación y eliminación de la cuenta.',
+  description: 'Ayuda para usar MeridianoGo, la app de Meridiano Cero: acceso a la gira, contraseña, ubicación y eliminación de la cuenta.',
 }
 
 export default function SupportPage() {
@@ -64,7 +64,7 @@ export default function SupportPage() {
         <List
           ordered
           items={[
-            'Abre la app de Meridiano Cero e inicia sesión.',
+            'Abre la app MeridianoGo e inicia sesión.',
             'Ve a la pestaña «Perfil».',
             'Toca «Eliminar cuenta» y confirma.',
           ]}
