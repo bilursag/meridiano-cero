@@ -46,8 +46,17 @@ export async function requireTripAccess(tripId: string) {
   const admin = await prisma.adminUser.findUnique({ where: { clerkUserId } })
   if (admin) return { clerkUserId, role: 'ADMIN' as const }
 
-  const membership = await prisma.tripMembership.findFirst({ where: { clerkUserId, tripId } })
-  if (!membership) throw new ApiError('FORBIDDEN', 'No tienes acceso a este grupo.')
+  // One person can hold several roles on a trip (a coordinator who is also a parent, or the store
+  // review account). Answer with the one that allows the most, so an arbitrary pick never hides
+  // the coordinator's screens (the roster answered 403 to the review account).
+  const memberships = await prisma.tripMembership.findMany({
+    where: { clerkUserId, tripId },
+    select: { role: true },
+  })
+  const role = ROLE_PRIORITY.find((candidate) => memberships.some((membership) => membership.role === candidate))
+  if (!role) throw new ApiError('FORBIDDEN', 'No tienes acceso a este grupo.')
 
-  return { clerkUserId, role: membership.role }
+  return { clerkUserId, role }
 }
+
+const ROLE_PRIORITY: Role[] = [Role.MONITOR, Role.PARENT, Role.STUDENT]
