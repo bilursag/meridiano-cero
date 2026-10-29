@@ -90,7 +90,14 @@ async function main() {
   const password = randomBytes(18).toString('base64url')
   const clerkUserId = await upsertClerkUser(email, password)
 
-  const previous = await prisma.trip.findMany({ where: { name: TRIP_NAME }, select: { id: true, programId: true } })
+  const previous = await prisma.trip.findMany({
+    where: { name: TRIP_NAME },
+    select: { id: true, programId: true, memberships: { select: { clerkUserId: true, role: true } } },
+  })
+  // Other review accounts (one per store) keep their access when the trip is recreated for this one.
+  const otherMembers = previous
+    .flatMap((trip) => trip.memberships)
+    .filter((membership) => membership.clerkUserId !== clerkUserId)
   for (const trip of previous) {
     await prisma.trip.delete({ where: { id: trip.id } })
     await prisma.program.delete({ where: { id: trip.programId } })
@@ -161,10 +168,18 @@ async function main() {
   // Created one at a time so the coordinator view comes first: the app opens the first membership.
   await prisma.tripMembership.create({ data: { clerkUserId, tripId: trip.id, role: Role.MONITOR } })
   await prisma.tripMembership.create({ data: { clerkUserId, tripId: trip.id, role: Role.PARENT } })
+  for (const membership of otherMembers) {
+    await prisma.tripMembership.upsert({
+      where: { clerkUserId_tripId_role: { clerkUserId: membership.clerkUserId, tripId: trip.id, role: membership.role } },
+      update: {},
+      create: { clerkUserId: membership.clerkUserId, tripId: trip.id, role: membership.role },
+    })
+  }
 
   console.log(`Review account ready: ${email} (${clerkUserId})`)
   console.log(`Password: ${password}`)
   console.log(`Trip: ${TRIP_NAME} (${trip.id}), coordinator and parent`)
+  console.log(`Kept ${otherMembers.length} membership(s) of other review accounts`)
 }
 
 main()
