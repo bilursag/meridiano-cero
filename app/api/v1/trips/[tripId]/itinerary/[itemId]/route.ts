@@ -8,6 +8,8 @@ import { requireTripWrite } from '@/lib/api/require-role'
 import { findItineraryItem } from '@/lib/api/itinerary'
 import { withApiHandler } from '@/lib/api/handler'
 import { tripStatusAfterActivity } from '@/lib/trip-status'
+import { notifyInBackground } from '@/lib/notifications'
+import { pushActivity } from '@/lib/push-triggers'
 
 const bodySchema = z.object({
   status: z.enum(ItineraryStatus).optional(),
@@ -33,7 +35,7 @@ export const PATCH = withApiHandler<{ tripId: string; itemId: string }>(async (r
   if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Los cambios de la actividad no son válidos.')
   if (Object.keys(parsed.data).length === 0) throw new ApiError('VALIDATION_ERROR', 'No hay cambios para guardar.')
 
-  await findItineraryItem(tripId, itemId)
+  const previous = await findItineraryItem(tripId, itemId)
 
   // The coordinator's "En ruta" / "En actividad" buttons also move the whole group between those statuses.
   const { tripStatus: requestedTripStatus, ...itemData } = parsed.data
@@ -52,6 +54,12 @@ export const PATCH = withApiHandler<{ tripId: string; itemId: string }>(async (r
     prisma.itineraryItem.update({ where: { id: itemId }, data: itemData }),
     ...(tripStatus ? [prisma.trip.update({ where: { id: tripId }, data: { status: tripStatus } })] : []),
   ])
+
+  // A step forward tells the families; "Deshacer" (which sends tripStatus) stays quiet.
+  if (itemData.status && !requestedTripStatus) {
+    const next = itemData.status
+    notifyInBackground(() => pushActivity(tripId, updated, previous.status, next))
+  }
 
   return NextResponse.json({ item: updated, previousTripStatus: trip?.status ?? null })
 })

@@ -1,6 +1,7 @@
 import { addDays } from 'date-fns'
 import { prisma } from '@/lib/db'
 import { NO_MONITOR_DAYS_BEFORE, planTripAlerts, type TripAlertInput } from '@/lib/trip-alerts'
+import { pushNoSignal } from '@/lib/push-triggers'
 
 /** Loads the trips that could need an alert now, creates the due notifications and returns them. */
 export async function runTripAlerts(now: Date = new Date()) {
@@ -41,5 +42,11 @@ export async function runTripAlerts(now: Date = new Date()) {
 
   const alerts = planTripAlerts(inputs, now)
   if (alerts.length) await prisma.notification.createMany({ data: alerts })
+
+  // The panel's feed is the record; the push to the coordinators is best effort.
+  for (const alert of alerts) {
+    if (alert.type !== 'TRIP_NO_SIGNAL') continue
+    await pushNoSignal(alert.tripId).catch((error) => console.error('[push] no-signal', error))
+  }
   return { checked: trips.length, alerts }
 }
