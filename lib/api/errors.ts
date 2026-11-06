@@ -7,6 +7,7 @@ export type ApiErrorCode =
   | 'NOT_FOUND'
   | 'VALIDATION_ERROR'
   | 'RATE_LIMITED'
+  | 'GONE'
 
 const STATUS_BY_CODE: Record<ApiErrorCode, number> = {
   UNAUTHENTICATED: 401,
@@ -14,6 +15,7 @@ const STATUS_BY_CODE: Record<ApiErrorCode, number> = {
   NOT_FOUND: 404,
   VALIDATION_ERROR: 422,
   RATE_LIMITED: 429,
+  GONE: 410,
 }
 
 export class ApiError extends Error {
