@@ -7,6 +7,7 @@ import { ApiError } from '@/lib/api/errors'
 import { requireTripAccess, requireTripWrite } from '@/lib/api/require-role'
 import { withApiHandler } from '@/lib/api/handler'
 import { notifyAnnouncement, notifyInBackground } from '@/lib/notifications'
+import { pushAnnouncement } from '@/lib/push-triggers'
 
 const MAX_FILE_SIZE = 8 * 1024 * 1024
 
@@ -31,7 +32,7 @@ export const GET = withApiHandler<{ tripId: string }>(async (_request, { params 
 
 export const POST = withApiHandler<{ tripId: string }>(async (request, { params }) => {
   const { tripId } = await params
-  const { role } = await requireTripWrite(tripId, [Role.MONITOR])
+  const { role, clerkUserId } = await requireTripWrite(tripId, [Role.MONITOR])
 
   const contentType = request.headers.get('content-type') ?? ''
   let data: z.infer<typeof bodySchema>
@@ -73,6 +74,7 @@ export const POST = withApiHandler<{ tripId: string }>(async (request, { params 
   })
 
   if (role !== 'ADMIN') notifyInBackground(() => notifyAnnouncement(tripId, announcement))
+  notifyInBackground(() => pushAnnouncement(tripId, announcement, clerkUserId))
 
   return NextResponse.json({ announcement }, { status: 201 })
 })
