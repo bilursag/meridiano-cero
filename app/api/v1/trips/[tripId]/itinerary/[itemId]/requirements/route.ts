@@ -7,6 +7,7 @@ import { requireTripWrite } from '@/lib/api/require-role'
 import { findItineraryItem } from '@/lib/api/itinerary'
 import { withApiHandler } from '@/lib/api/handler'
 import { notifyAnnouncement, notifyInBackground } from '@/lib/notifications'
+import { pushAnnouncement } from '@/lib/push-triggers'
 
 const bodySchema = z.object({ authorName: z.string().trim().min(1) })
 
@@ -16,7 +17,7 @@ const bodySchema = z.object({ authorName: z.string().trim().min(1) })
  */
 export const POST = withApiHandler<{ tripId: string; itemId: string }>(async (request, { params }) => {
   const { tripId, itemId } = await params
-  const { role } = await requireTripWrite(tripId, [Role.MONITOR])
+  const { role, clerkUserId } = await requireTripWrite(tripId, [Role.MONITOR])
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Falta el autor del comunicado.')
@@ -38,6 +39,7 @@ export const POST = withApiHandler<{ tripId: string; itemId: string }>(async (re
   ])
 
   if (role !== 'ADMIN') notifyInBackground(() => notifyAnnouncement(tripId, announcement))
+  notifyInBackground(() => pushAnnouncement(tripId, announcement, clerkUserId))
 
   return NextResponse.json({ announcement, item: updated }, { status: 201 })
 })
