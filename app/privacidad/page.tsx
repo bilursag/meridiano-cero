@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: 'Cómo Meridiano Cero trata los datos personales en su plataforma de giras de estudio y su app móvil MeridianoGo.',
 }
 
-const LAST_UPDATED = '26 de octubre de 2026'
+const LAST_UPDATED = '6 de noviembre de 2026'
 
 const collectedData = [
   {
@@ -25,7 +25,7 @@ const collectedData = [
   {
     who: 'Coordinadores',
     data: 'Ubicación del teléfono mientras transmiten la ruta del grupo (ver sección 4)',
-    source: 'La app la lee del GPS, solo con permiso y con la transmisión activada',
+    source: 'La app la lee del GPS, solo con permiso y con la transmisión activada, también en segundo plano',
   },
   {
     who: 'Coordinadores',
@@ -129,9 +129,15 @@ export default function PrivacyPolicyPage() {
           <List
             items={[
               <>
-                <strong>Cuándo:</strong> solo mientras el coordinador tiene activada la transmisión y la app abierta en
-                pantalla. Se envía una posición cada 15 segundos aproximadamente. Si la app pasa a segundo plano, la
-                transmisión se pausa.
+                <strong>Cuándo:</strong> solo mientras el coordinador tiene activada la transmisión durante una gira,
+                también con la app en segundo plano, cerrada o el teléfono bloqueado, para que los apoderados vean al
+                grupo durante todo el trayecto. Se envía una posición cada 15 segundos aproximadamente. Mientras se
+                comparte, el teléfono lo indica con un aviso permanente (Android) o un indicador en la barra superior
+                (iPhone). La transmisión se detiene al pausarla, al cerrar sesión o cuando termina la gira.
+              </>,
+              <>
+                <strong>Sin señal:</strong> si el teléfono no tiene conexión, guarda las posiciones en el propio
+                teléfono y las envía cuando la recupera. Después de enviarlas, no quedan copias en el teléfono.
               </>,
               <>
                 <strong>Con permiso:</strong> el sistema del teléfono pide autorización la primera vez. El coordinador
