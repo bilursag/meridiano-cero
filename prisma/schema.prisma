@@ -264,3 +264,16 @@ model TrackingToken {
 
   @@index([tripId, clerkUserId])
 }
+
+/// A phone that receives push notifications (an Expo push token), for the signed-in user who
+/// registered it. The same phone signing in with another account moves the token to that account.
+model PushDevice {
+  id          String   @id @default(cuid())
+  clerkUserId String
+  token       String   @unique
+  platform    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([clerkUserId])
+}
