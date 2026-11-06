@@ -90,6 +90,7 @@ model Trip {
   itineraryItems ItineraryItem[]
   announcements  Announcement[]
   locationPings  LocationPing[]
+  trackingTokens TrackingToken[]
   legs           TripLeg[]
   notifications  Notification[]
 
@@ -240,7 +241,26 @@ model LocationPing {
   lat       Float
   lng       Float
   accuracy  Int
+  /// When the phone took the fix. Pings sent in a batch (background tracking, after a stretch
+  /// without signal) carry the phone's capture time here, not the time they reached the server.
   createdAt DateTime @default(now())
 
   @@index([tripId, createdAt])
+}
+
+/// Lets a coordinator's phone send the trip's location from the background, where no Clerk session
+/// is at hand (Android keeps the tracking service running after the app is closed). Only the hash is
+/// stored; the token only allows sending locations for this trip, and is revoked when the
+/// coordinator pauses tracking, signs out or a new token is issued.
+model TrackingToken {
+  id          String    @id @default(cuid())
+  tripId      String
+  trip        Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  clerkUserId String
+  tokenHash   String    @unique
+  createdAt   DateTime  @default(now())
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+
+  @@index([tripId, clerkUserId])
 }
