@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: 'Cómo Meridiano Cero trata los datos personales en su plataforma de giras de estudio y su app móvil MeridianoGo.',
 }
 
-const LAST_UPDATED = '26 de octubre de 2026'
+const LAST_UPDATED = '6 de noviembre de 2026'
 
 const collectedData = [
   {
@@ -21,6 +21,11 @@ const collectedData = [
     who: 'Todo usuario con cuenta',
     data: 'Datos técnicos de la sesión: dirección IP, tipo de dispositivo, navegador, fecha y hora de acceso',
     source: 'Se generan automáticamente al usar la plataforma',
+  },
+  {
+    who: 'Todo usuario de la app móvil que acepte notificaciones',
+    data: 'Identificador de notificaciones del teléfono, asociado a su cuenta',
+    source: 'Lo entrega el sistema del teléfono cuando el usuario permite las notificaciones',
   },
   {
     who: 'Coordinadores',
@@ -49,6 +54,10 @@ const purposes = [
   ['Mostrar a apoderados el itinerario, los avisos, las fotos y la ubicación del grupo', 'Ejecución del contrato de servicio de la gira'],
   ['Mostrar al equipo de Meridiano Cero el estado y la ubicación de los grupos en viaje', 'Ejecución del contrato y seguridad de los pasajeros'],
   ['Transmitir la ubicación del coordinador', 'Consentimiento, otorgado al activar el permiso de ubicación'],
+  [
+    'Avisar en el teléfono los comunicados, los avances del itinerario y, a los coordinadores, la falta de señal del grupo',
+    'Consentimiento, otorgado al permitir las notificaciones',
+  ],
   ['Enviar correos de verificación, invitación y recuperación de contraseña', 'Ejecución del contrato'],
   ['Prevenir accesos indebidos, limitar intentos de códigos y detectar errores técnicos', 'Interés legítimo en mantener la plataforma segura'],
   ['Cumplir obligaciones legales o requerimientos de autoridades', 'Obligación legal'],
@@ -59,6 +68,11 @@ const providers = [
   ['Vercel', 'Alojamiento de la plataforma, almacenamiento de fotos y estadísticas de visitas', 'Todo lo que pasa por la plataforma, incluidas las fotos'],
   ['Neon', 'Base de datos', 'Datos de giras, itinerarios, avisos, ubicaciones y vínculos de usuarios'],
   ['Google (Google Maps)', 'Mapa dentro de la app móvil', 'Zona del mapa consultada y dirección IP'],
+  [
+    'Expo, Apple y Google',
+    'Entrega de notificaciones a los teléfonos',
+    'Identificador de notificaciones del teléfono y el texto de cada aviso (título y extracto)',
+  ],
   ['OpenStreetMap', 'Mapa en la plataforma web', 'Zona del mapa consultada y dirección IP'],
 ]
 
@@ -66,6 +80,7 @@ const retention = [
   ['Historial de ubicación, fotos y avisos de la gira', 'Mientras dure la relación del colegio con Meridiano Cero, o hasta que el titular pida eliminarlos'],
   ['Itinerario y datos generales de la gira', 'Mientras dure la relación del colegio con Meridiano Cero, y luego el plazo que exija la ley'],
   ['Cuenta de usuario', 'Hasta que el usuario la elimine desde la app o pida eliminarla'],
+  ['Identificador de notificaciones', 'Hasta cerrar sesión en ese teléfono, desactivar las notificaciones o eliminar la cuenta'],
   ['Registros técnicos y de errores', '12 meses'],
 ]
 
