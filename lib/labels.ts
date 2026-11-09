@@ -9,6 +9,7 @@ export const roleLabels: Record<Role, string> = {
 }
 
 export const tripStatusLabels: Record<TripStatus, string> = {
+  PENDING: 'Pendiente',
   IN_TRANSIT: 'En ruta',
   IN_ACTIVITY: 'En actividad',
   RESTING: 'Descansando',

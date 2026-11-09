@@ -4,8 +4,9 @@ import { prisma } from '@/lib/db'
 import { requireAdmin } from '@/lib/api/require-role'
 import { withApiHandler } from '@/lib/api/handler'
 import { describeUsers } from '@/lib/api/clerk-users'
+import { tripStatusForClient } from '@/lib/api/client-compat'
 
-export const GET = withApiHandler(async () => {
+export const GET = withApiHandler(async (request) => {
   await requireAdmin()
 
   const trips = await prisma.trip.findMany({
@@ -33,7 +34,7 @@ export const GET = withApiHandler(async () => {
     id: trip.id,
     name: trip.name,
     destination: trip.destination,
-    status: trip.status,
+    status: tripStatusForClient(trip.status, request),
     school: trip.school.name,
     salesExecutive: trip.salesExecutive,
     ping: trip.locationPings[0] ?? null,

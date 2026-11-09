@@ -15,6 +15,12 @@ describe('tripStatusAfterActivity', () => {
     expect(tripStatusAfterActivity('COMPLETED', 'IN_TRANSIT')).toBeNull()
   })
 
+  it('starts a Pendiente trip with its first "En ruta" or "En actividad"', () => {
+    expect(tripStatusAfterActivity('IN_TRANSIT', 'PENDING')).toBe('IN_TRANSIT')
+    expect(tripStatusAfterActivity('IN_PROGRESS', 'PENDING')).toBe('IN_ACTIVITY')
+    expect(tripStatusAfterActivity('COMPLETED', 'PENDING')).toBeNull()
+  })
+
   it('skips writes when nothing changes and never reopens a finished trip', () => {
     expect(tripStatusAfterActivity('PENDING', 'IN_TRANSIT')).toBeNull()
     expect(tripStatusAfterActivity('IN_PROGRESS', 'IN_ACTIVITY')).toBeNull()

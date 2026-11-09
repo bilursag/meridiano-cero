@@ -29,6 +29,7 @@ type FleetTrip = {
 }
 
 const STATUS_COLOR: Record<TripStatus, string> = {
+  PENDING: '#06b6d4',
   IN_TRANSIT: '#f59e0b',
   IN_ACTIVITY: '#3b82f6',
   RESTING: '#22c55e',
