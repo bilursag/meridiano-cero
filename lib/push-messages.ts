@@ -73,3 +73,24 @@ export function noSignalPush(trip: { id: string; name: string }): PushContent {
     target: { screen: 'home', tripId: trip.id },
   }
 }
+
+/**
+ * An activity step for the admins, who follow every trip in the field at once: the group goes
+ * first in the title, so a stack of these on the lock screen still says which group did what.
+ */
+export function adminActivityPush(
+  trip: { id: string; name: string },
+  item: { title: string; location: string | null },
+  previous: ItineraryStatus,
+  next: ItineraryStatus
+): PushContent | null {
+  const forFamilies = activityPush(trip, item, previous, next)
+  if (!forFamilies) return null
+  const place = item.location ? ` (${item.location})` : ''
+  const heading = next === 'IN_TRANSIT'
+  return {
+    title: clip(`${trip.name}: ${heading ? 'en ruta a' : 'llegó a'} ${item.title}`),
+    body: clip(`${heading ? 'El grupo va camino a' : 'El grupo está en'} ${item.title}${place}.`),
+    target: forFamilies.target,
+  }
+}

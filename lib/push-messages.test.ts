@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { activityPush, announcementPush, noSignalPush } from './push-messages'
+import { activityPush, adminActivityPush, announcementPush, noSignalPush } from './push-messages'
 
 const trip = { id: 'trip-1', name: '4° Medio B – Bariloche' }
 
@@ -40,6 +40,25 @@ describe('activityPush', () => {
     expect(activityPush(trip, { title: 'Cena', location: '' }, 'PENDING', 'IN_PROGRESS')?.body).toBe(
       '4° Medio B – Bariloche: el grupo está en la actividad.'
     )
+  })
+})
+
+describe('adminActivityPush', () => {
+  const item = { title: 'Cerro Catedral', location: 'Bariloche' }
+
+  it('puts the group first and opens the itinerary', () => {
+    const heading = adminActivityPush(trip, item, 'PENDING', 'IN_TRANSIT')
+    expect(heading?.title).toBe('4° Medio B – Bariloche: en ruta a Cerro Catedral')
+    expect(heading?.body).toBe('El grupo va camino a Cerro Catedral (Bariloche).')
+    expect(heading?.target).toEqual({ screen: 'itinerary', tripId: 'trip-1' })
+    expect(adminActivityPush(trip, item, 'IN_TRANSIT', 'IN_PROGRESS')?.title).toBe(
+      '4° Medio B – Bariloche: llegó a Cerro Catedral'
+    )
+  })
+
+  it('stays quiet when the families do', () => {
+    expect(adminActivityPush(trip, item, 'IN_PROGRESS', 'COMPLETED')).toBeNull()
+    expect(adminActivityPush(trip, item, 'IN_TRANSIT', 'IN_TRANSIT')).toBeNull()
   })
 })
 
