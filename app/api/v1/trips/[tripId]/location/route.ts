@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db'
 import { ApiError } from '@/lib/api/errors'
 import { requireTripAccess, requireTripWrite } from '@/lib/api/require-role'
 import { withApiHandler } from '@/lib/api/handler'
+import { startPendingTripOnLocation } from '@/lib/api/trip-lifecycle'
 
 const MIN_PING_INTERVAL_MS = 5000
 
@@ -46,6 +47,7 @@ export const POST = withApiHandler<{ tripId: string }>(async (request, { params 
   const ping = await prisma.locationPing.create({
     data: { tripId, ...parsed.data },
   })
+  await startPendingTripOnLocation(tripId, ping.createdAt)
 
   return NextResponse.json({ ping }, { status: 201 })
 })
