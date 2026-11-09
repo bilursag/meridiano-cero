@@ -55,6 +55,7 @@ const MESSAGE_BY_TRANSITION: Record<ActivityTransition, (title: string) => strin
 const TRIP_STATUS_OPTIONS: TripStatus[] = ['IN_ACTIVITY', 'RESTING', 'FINISHED']
 
 const TRIP_STATUS_MESSAGE: Record<TripStatus, string> = {
+  PENDING: 'El grupo aún no inicia la gira.',
   IN_TRANSIT: 'El grupo está en tránsito.',
   IN_ACTIVITY: 'El grupo está en actividad.',
   RESTING: 'El grupo está descansando.',

@@ -9,8 +9,9 @@ import { requireAdmin, requireTripAccess } from '@/lib/api/require-role'
 import { withApiHandler } from '@/lib/api/handler'
 import { notifyInBackground, notifyTripStatusChanged } from '@/lib/notifications'
 import { findOrCreateSchool } from '@/lib/api/trips'
+import { withClientTripStatus } from '@/lib/api/client-compat'
 
-export const GET = withApiHandler<{ tripId: string }>(async (_request, { params }) => {
+export const GET = withApiHandler<{ tripId: string }>(async (request, { params }) => {
   const { tripId } = await params
   await requireTripAccess(tripId)
 
@@ -20,7 +21,7 @@ export const GET = withApiHandler<{ tripId: string }>(async (_request, { params 
   })
   if (!trip) throw new ApiError('NOT_FOUND', 'No se encontró el grupo.')
 
-  return NextResponse.json({ trip })
+  return NextResponse.json({ trip: withClientTripStatus(trip, request) })
 })
 
 const legSchema = z.object({
@@ -135,7 +136,7 @@ export const PATCH = withApiHandler<{ tripId: string }>(async (request, { params
     notifyInBackground(() => notifyTripStatusChanged(trip, status))
   }
 
-  return NextResponse.json({ trip })
+  return NextResponse.json({ trip: withClientTripStatus(trip, request) })
 })
 
 export const DELETE = withApiHandler<{ tripId: string }>(async (_request, { params }) => {

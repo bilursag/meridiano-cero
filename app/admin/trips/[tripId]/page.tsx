@@ -71,7 +71,9 @@ type MonitorRow = { id: string; name: string; email: string }
 type StudentRow = { id: string; name: string; email: string }
 type ProgramOption = { id: string; name: string }
 
-const STATUS_OPTIONS: TripStatus[] = ['IN_ACTIVITY', 'RESTING', 'FINISHED']
+// "Pendiente" is here so an admin can undo a trip started by mistake; "En ruta" follows the
+// coordinator's activity buttons.
+const STATUS_OPTIONS: TripStatus[] = ['PENDING', 'IN_ACTIVITY', 'RESTING', 'FINISHED']
 
 function dayDate(startDate: string | Date, dayNumber: number) {
   return addDays(new Date(startDate), dayNumber - 1)

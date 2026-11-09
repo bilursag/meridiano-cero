@@ -2,6 +2,7 @@ import type { TripStatus } from '@prisma/client'
 import { tripStatusLabels } from '@/lib/labels'
 
 const cfg: Record<TripStatus, { dot: string; chip: string }> = {
+  PENDING: { dot: 'bg-cyan-500', chip: 'chip-cyan' },
   IN_TRANSIT: { dot: 'bg-amber-500', chip: 'chip-amber' },
   IN_ACTIVITY: { dot: 'bg-blue-500', chip: 'chip-blue' },
   RESTING: { dot: 'bg-green-500', chip: 'chip-green' },
