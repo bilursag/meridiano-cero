@@ -28,7 +28,7 @@ const bodySchema = z.object({
 
 export const PATCH = withApiHandler<{ tripId: string; itemId: string }>(async (request, { params }) => {
   const { tripId, itemId } = await params
-  await requireTripWrite(tripId, [Role.MONITOR])
+  const { clerkUserId } = await requireTripWrite(tripId, [Role.MONITOR])
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
@@ -55,10 +55,10 @@ export const PATCH = withApiHandler<{ tripId: string; itemId: string }>(async (r
     ...(tripStatus ? [prisma.trip.update({ where: { id: tripId }, data: { status: tripStatus } })] : []),
   ])
 
-  // A step forward tells the families; "Deshacer" (which sends tripStatus) stays quiet.
+  // A step forward tells the families and the admins; "Deshacer" (which sends tripStatus) stays quiet.
   if (itemData.status && !requestedTripStatus) {
     const next = itemData.status
-    notifyInBackground(() => pushActivity(tripId, updated, previous.status, next))
+    notifyInBackground(() => pushActivity(tripId, updated, previous.status, next, clerkUserId))
   }
 
   return NextResponse.json({ item: updated, previousTripStatus: trip?.status ?? null })
