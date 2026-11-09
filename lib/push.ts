@@ -57,6 +57,12 @@ export async function pushToUsers(clerkUserIds: string[], content: PushContent) 
   return { sent }
 }
 
+/** Every admin of the platform: they can open any trip, so they hold no membership on it. */
+export async function adminIds() {
+  const admins = await prisma.adminUser.findMany({ select: { clerkUserId: true } })
+  return admins.map((admin) => admin.clerkUserId)
+}
+
 /** The members of a trip with these roles, optionally leaving out one person (the author). */
 export async function tripMemberIds(tripId: string, roles: Role[], exceptClerkUserId?: string) {
   const memberships = await prisma.tripMembership.findMany({
