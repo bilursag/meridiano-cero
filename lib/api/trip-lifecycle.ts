@@ -19,3 +19,16 @@ export async function startPendingTripOnLocation(tripId: string, at: Date = new 
   })
   return count > 0
 }
+
+/**
+ * Trips whose last day is over in Chile become "Finalizada", run by the scheduled job: a trip that
+ * never started ("Pendiente") too. Finalizada trips leave the fleet map and never raise alerts, and
+ * nothing else ever closed them. A trip already Finalizada is left as it is.
+ */
+export async function finishEndedTrips(now: Date = new Date()): Promise<number> {
+  const { count } = await prisma.trip.updateMany({
+    where: { status: { not: 'FINISHED' }, endDate: { lt: chileStartOfDay(now) } },
+    data: { status: 'FINISHED' },
+  })
+  return count
+}

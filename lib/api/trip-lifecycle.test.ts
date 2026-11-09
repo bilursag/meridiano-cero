@@ -5,7 +5,7 @@ import { mockDeep, mockReset, type DeepMockProxy } from 'vitest-mock-extended'
 vi.mock('@/lib/db', () => ({ prisma: mockDeep<PrismaClient>() }))
 
 const { prisma } = await import('@/lib/db')
-const { chileStartOfDay, startPendingTripOnLocation } = await import('./trip-lifecycle')
+const { chileStartOfDay, finishEndedTrips, startPendingTripOnLocation } = await import('./trip-lifecycle')
 const prismaMock = prisma as unknown as DeepMockProxy<PrismaClient>
 
 beforeEach(() => {
@@ -37,5 +37,17 @@ describe('startPendingTripOnLocation', () => {
   it('reports when nothing changed (already started, or outside its dates)', async () => {
     prismaMock.trip.updateMany.mockResolvedValue({ count: 0 })
     expect(await startPendingTripOnLocation('trip-1', now)).toBe(false)
+  })
+})
+
+describe('finishEndedTrips', () => {
+  it('finishes every unfinished trip whose last day is before today in Chile, Pendiente included', async () => {
+    prismaMock.trip.updateMany.mockResolvedValue({ count: 2 })
+    expect(await finishEndedTrips(now)).toBe(2)
+    // A trip ending today (endDate = today's Chile midnight) is not "lt" it, so it stays open all day.
+    expect(prismaMock.trip.updateMany).toHaveBeenCalledWith({
+      where: { status: { not: 'FINISHED' }, endDate: { lt: chileMidnightToday } },
+      data: { status: 'FINISHED' },
+    })
   })
 })
