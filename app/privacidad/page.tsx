@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: 'Cómo Meridiano Cero trata los datos personales en su plataforma de giras de estudio y su app móvil MeridianoGo.',
 }
 
-const LAST_UPDATED = '6 de noviembre de 2026'
+const LAST_UPDATED = '12 de noviembre de 2026'
 
 const collectedData = [
   {
@@ -74,6 +74,7 @@ const providers = [
     'Identificador de notificaciones del teléfono y el texto de cada aviso (título y extracto)',
   ],
   ['OpenStreetMap', 'Mapa en la plataforma web', 'Zona del mapa consultada y dirección IP'],
+  ['Sentry', 'Detección de errores técnicos', 'Descripción del error, página o pantalla donde ocurrió y datos técnicos del dispositivo y del navegador'],
 ]
 
 const retention = [
@@ -219,7 +220,7 @@ export default function PrivacyPolicyPage() {
         <Section title="7. Dónde se almacenan los datos">
           <p>
             La plataforma y su base de datos funcionan en servidores ubicados en São Paulo, Brasil. Algunos
-            proveedores, como Clerk, procesan datos en Estados Unidos. Las fotos se almacenan en la infraestructura de
+            proveedores, como Clerk y Sentry, procesan datos en Estados Unidos. Las fotos se almacenan en la infraestructura de
             Vercel.
           </p>
           <p>

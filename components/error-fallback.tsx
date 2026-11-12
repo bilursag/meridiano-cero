@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import * as Sentry from '@sentry/nextjs'
 import Link from 'next/link'
 import { HomeIcon, RefreshCwIcon, TriangleAlertIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -30,6 +31,7 @@ export function ErrorFallback({
 }) {
   useEffect(() => {
     console.error(error)
+    Sentry.captureException(error)
     reportClientError(error)
   }, [error])
 
