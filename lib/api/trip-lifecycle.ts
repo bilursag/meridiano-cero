@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { chileDateKey, chileMidnightFromKey } from '@/lib/dates'
+import { TRIP_OPEN_AFTER_END_MS } from '@/lib/trip-status'
 
 /** The first instant of the given moment's calendar date in Chile. */
 export function chileStartOfDay(at: Date): Date {
@@ -21,13 +22,14 @@ export async function startPendingTripOnLocation(tripId: string, at: Date = new 
 }
 
 /**
- * Trips whose last day is over in Chile become "Finalizada", run by the scheduled job: a trip that
- * never started ("Pendiente") too. Finalizada trips leave the fleet map and never raise alerts, and
- * nothing else ever closed them. A trip already Finalizada is left as it is.
+ * Trips past their open window (TRIP_OPEN_AFTER_END_MS: noon in Chile the day after the last one,
+ * so an overnight way home stays on the map) become "Finalizada", run by the scheduled job: a
+ * trip that never started ("Pendiente") too. Finalizada trips leave the fleet map, stop taking
+ * locations and never raise alerts. A trip already Finalizada is left as it is.
  */
 export async function finishEndedTrips(now: Date = new Date()): Promise<number> {
   const { count } = await prisma.trip.updateMany({
-    where: { status: { not: 'FINISHED' }, endDate: { lt: chileStartOfDay(now) } },
+    where: { status: { not: 'FINISHED' }, endDate: { lt: new Date(now.getTime() - TRIP_OPEN_AFTER_END_MS) } },
     data: { status: 'FINISHED' },
   })
   return count
