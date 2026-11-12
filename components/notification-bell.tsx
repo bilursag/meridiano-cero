@@ -8,6 +8,7 @@ import type { NotificationType } from "@prisma/client"
 import {
   BellIcon,
   BellOffIcon,
+  MegaphoneIcon,
   RefreshCwIcon,
   ServerCrashIcon,
   TriangleAlertIcon,
@@ -31,6 +32,7 @@ const ICON_BY_TYPE: Record<NotificationType, { icon: React.ComponentType<{ class
   SYSTEM_ERROR: { icon: ServerCrashIcon, className: "text-destructive" },
   TRIP_NO_SIGNAL: { icon: WifiOffIcon, className: "text-destructive" },
   TRIP_NO_MONITOR: { icon: UserXIcon, className: "text-amber-500" },
+  COORDINATOR_MESSAGE: { icon: MegaphoneIcon, className: "text-primary" },
 }
 
 export function NotificationBell() {

@@ -34,6 +34,7 @@ import type {
   TripStatus,
 } from '@prisma/client'
 import { SiteHeader } from '@/components/site-header'
+import { CoordinatorMessageDialog } from '@/components/coordinator-message-dialog'
 import StatusBadge from '@/components/StatusBadge'
 import { ActivityItemSheet, type ActivityItemEditing, type ActivityItemValues } from '@/components/activity-item-form'
 import { EmptyState } from '@/components/empty-state'
@@ -459,10 +460,13 @@ export default function AdminTripDetailPage() {
         title={trip.name}
         subtitle={trip.school.name}
         right={
-          <Button variant="outline" size="xs" onClick={openEditDialog}>
-            <PencilIcon />
-            Editar grupo
-          </Button>
+          <div className="flex items-center gap-2">
+            {trip.status !== 'FINISHED' ? <CoordinatorMessageDialog trip={trip} /> : null}
+            <Button variant="outline" size="xs" onClick={openEditDialog}>
+              <PencilIcon />
+              Editar grupo
+            </Button>
+          </div>
         }
       />
       <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
