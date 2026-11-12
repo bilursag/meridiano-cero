@@ -1,11 +1,10 @@
+import { TRIP_OPEN_AFTER_END_MS } from '@/lib/trip-status'
+
 /** Same spacing the single-ping endpoint enforces: the map and the alerts never need more. */
 export const MIN_PING_GAP_MS = 5_000
 
 /** Fixes older than this are dropped: a phone that was off for days has nothing useful to add. */
 export const MAX_PING_AGE_MS = 24 * 60 * 60 * 1000
-
-/** How long after its last day a trip still accepts locations (the way home, late arrivals). */
-export const TRACKING_GRACE_AFTER_END_MS = 36 * 60 * 60 * 1000
 
 export type BatchPoint = { lat: number; lng: number; accuracy: number; recordedAt: number }
 export type PlannedPing = { lat: number; lng: number; accuracy: number; createdAt: Date }
@@ -33,8 +32,8 @@ export function planPingBatch(points: BatchPoint[], lastStoredAt: Date | null, n
   return planned
 }
 
-/** Whether a trip still takes locations: not finished, and not long past its last day. */
+/** Whether a trip still takes locations: not finished, and within its open window after the last day. */
 export function tripAcceptsTracking(trip: { status: string; endDate: Date }, now: Date): boolean {
   if (trip.status === 'FINISHED') return false
-  return now.getTime() <= trip.endDate.getTime() + TRACKING_GRACE_AFTER_END_MS
+  return now.getTime() <= trip.endDate.getTime() + TRIP_OPEN_AFTER_END_MS
 }
