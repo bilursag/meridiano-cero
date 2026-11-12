@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { activityPush, adminActivityPush, announcementPush, noSignalPush } from './push-messages'
+import {
+  activityPush,
+  adminActivityPush,
+  announcementPush,
+  COORDINATOR_MESSAGE_MAX,
+  coordinatorMessagePush,
+  noSignalPush,
+} from './push-messages'
 
 const trip = { id: 'trip-1', name: '4° Medio B – Bariloche' }
 
@@ -65,5 +72,21 @@ describe('adminActivityPush', () => {
 describe('noSignalPush', () => {
   it('opens the coordinator home of the trip', () => {
     expect(noSignalPush(trip).target).toEqual({ screen: 'home', tripId: 'trip-1' })
+  })
+})
+
+describe('coordinatorMessagePush', () => {
+  it('names the central team and the trip, and opens the trip', () => {
+    const push = coordinatorMessagePush(trip, { title: 'Cambio de horario', message: 'El bus sale a las 8:30.' })
+    expect(push.title).toBe('Equipo central: Cambio de horario')
+    expect(push.body).toBe('4° Medio B – Bariloche · El bus sale a las 8:30.')
+    expect(push.target).toEqual({ screen: 'home', tripId: 'trip-1' })
+  })
+
+  it('keeps the whole message and its line breaks: the push is the only copy', () => {
+    const message = 'Primera línea.\nSegunda línea. ' + 'x'.repeat(COORDINATOR_MESSAGE_MAX - 30)
+    const push = coordinatorMessagePush(trip, { title: 'Aviso', message })
+    expect(push.body).toBe(`4° Medio B – Bariloche · ${message.trim()}`)
+    expect(push.body).toContain('\n')
   })
 })

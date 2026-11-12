@@ -44,6 +44,8 @@ enum NotificationType {
   SYSTEM_ERROR
   TRIP_NO_SIGNAL
   TRIP_NO_MONITOR
+  // A push the central team sent from the panel to one trip's coordinators, or to every trip in the field.
+  COORDINATOR_MESSAGE
 }
 
 model School {

@@ -74,6 +74,24 @@ export function noSignalPush(trip: { id: string; name: string }): PushContent {
   }
 }
 
+/** Longest message the panel takes for coordinators: the push is all they get, so it isn't clipped. */
+export const COORDINATOR_MESSAGE_MAX = 500
+
+/**
+ * A message from the central team to a trip's coordinators. It lives only in the push (the app
+ * keeps no copy), so the message goes whole, with the trip first for a coordinator of several.
+ */
+export function coordinatorMessagePush(
+  trip: { id: string; name: string },
+  message: { title: string; message: string }
+): PushContent {
+  return {
+    title: clip(`Equipo central: ${message.title}`),
+    body: `${trip.name} · ${message.message.trim()}`,
+    target: { screen: 'home', tripId: trip.id },
+  }
+}
+
 /**
  * An activity step for the admins, who follow every trip in the field at once: the group goes
  * first in the title, so a stack of these on the lock screen still says which group did what.

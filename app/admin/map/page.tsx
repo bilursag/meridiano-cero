@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import type { TripStatus } from '@prisma/client'
 import { MapPinIcon } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
+import { CoordinatorMessageDialog } from '@/components/coordinator-message-dialog'
 import StatusBadge from '@/components/StatusBadge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -127,7 +128,11 @@ export default function AdminMapPage() {
 
   return (
     <>
-      <SiteHeader title="Mapa operativo" subtitle="Grupos en terreno en tiempo real" />
+      <SiteHeader
+        title="Mapa operativo"
+        subtitle="Grupos en terreno en tiempo real"
+        right={<CoordinatorMessageDialog />}
+      />
       <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
         <GlobalFilters
           search={search}
