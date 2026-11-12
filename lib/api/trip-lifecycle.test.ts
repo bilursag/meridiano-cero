@@ -41,13 +41,28 @@ describe('startPendingTripOnLocation', () => {
 })
 
 describe('finishEndedTrips', () => {
-  it('finishes every unfinished trip whose last day is before today in Chile, Pendiente included', async () => {
+  it('finishes every unfinished trip past noon of the day after its last one, Pendiente included', async () => {
     prismaMock.trip.updateMany.mockResolvedValue({ count: 2 })
     expect(await finishEndedTrips(now)).toBe(2)
-    // A trip ending today (endDate = today's Chile midnight) is not "lt" it, so it stays open all day.
+    // 36 h before 10:00 on 9 Nov is 22:00 on 7 Nov: a trip whose last day was 7 Nov is closed.
     expect(prismaMock.trip.updateMany).toHaveBeenCalledWith({
-      where: { status: { not: 'FINISHED' }, endDate: { lt: chileMidnightToday } },
+      where: { status: { not: 'FINISHED' }, endDate: { lt: new Date('2026-11-08T01:00:00Z') } },
       data: { status: 'FINISHED' },
     })
+  })
+
+  it('keeps a trip whose last day was yesterday open until noon in Chile', async () => {
+    prismaMock.trip.updateMany.mockResolvedValue({ count: 0 })
+    const yesterdayMidnight = new Date('2026-11-08T03:00:00Z')
+    const cutoff = (at: string) => {
+      prismaMock.trip.updateMany.mockClear()
+      return finishEndedTrips(new Date(at)).then(
+        () => (prismaMock.trip.updateMany.mock.calls[0][0] as { where: { endDate: { lt: Date } } }).where.endDate.lt
+      )
+    }
+    // 11:59 in Chile: still open (the way home overnight is on the map).
+    expect(yesterdayMidnight < (await cutoff('2026-11-09T14:59:00Z'))).toBe(false)
+    // 12:01 in Chile: closed.
+    expect(yesterdayMidnight < (await cutoff('2026-11-09T15:01:00Z'))).toBe(true)
   })
 })
