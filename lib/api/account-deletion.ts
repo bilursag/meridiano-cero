@@ -9,7 +9,7 @@ function isClerkNotFound(error: unknown) {
 
 /**
  * Deletes someone's account: their own rows first (trip memberships, redeem attempts, admin
- * access), then the Clerk user. The group's data stays: trips, photos, announcements and location
+ * access, push devices, tracking tokens), then the Clerk user. The group's data stays: trips, photos, announcements and location
  * pings belong to the trip, not to the person, and the school keeps them (see /privacidad).
  *
  * Clerk is called inside the database transaction, so if Clerk fails the rows are rolled back and
@@ -29,6 +29,9 @@ export async function deleteAccount(clerkUserId: string) {
       await tx.tripMembership.deleteMany({ where: { clerkUserId } })
       await tx.redeemAttempt.deleteMany({ where: { clerkUserId } })
       await tx.adminUser.deleteMany({ where: { clerkUserId } })
+      // The phone's push identifier and the coordinator's background tracking tokens.
+      await tx.pushDevice.deleteMany({ where: { clerkUserId } })
+      await tx.trackingToken.deleteMany({ where: { clerkUserId } })
 
       const client = await clerkClient()
       try {
