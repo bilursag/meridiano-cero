@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs'
 import { prisma } from '@/lib/db'
 import { notifyInBackground } from '@/lib/notifications'
 
@@ -54,5 +55,7 @@ export async function reportError(
 /** For request handlers: records the error after the response is sent. */
 export function reportErrorInBackground(error: unknown, request: Request) {
   const path = new URL(request.url).pathname
+  // These errors are caught (the client gets a 500 JSON answer), so Sentry would never see them.
+  Sentry.captureException(error, { tags: { route: path } })
   notifyInBackground(() => reportError(error, { source: 'server', path }))
 }
