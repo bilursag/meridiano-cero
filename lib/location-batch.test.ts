@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_PING_AGE_MS, planPingBatch, tripAcceptsTracking, TRACKING_GRACE_AFTER_END_MS } from './location-batch'
+import { MAX_PING_AGE_MS, planPingBatch, tripAcceptsTracking } from './location-batch'
+import { TRIP_OPEN_AFTER_END_MS } from './trip-status'
 
 const now = new Date('2026-11-20T15:00:00Z')
 const at = (secondsAgo: number) => now.getTime() - secondsAgo * 1000
@@ -34,7 +35,7 @@ describe('tripAcceptsTracking', () => {
   })
 
   it('accepts until the grace period after the last day ends', () => {
-    expect(tripAcceptsTracking({ status: 'IN_TRANSIT', endDate }, new Date(endDate.getTime() + TRACKING_GRACE_AFTER_END_MS))).toBe(true)
-    expect(tripAcceptsTracking({ status: 'RESTING', endDate }, new Date(endDate.getTime() + TRACKING_GRACE_AFTER_END_MS + 1))).toBe(false)
+    expect(tripAcceptsTracking({ status: 'IN_TRANSIT', endDate }, new Date(endDate.getTime() + TRIP_OPEN_AFTER_END_MS))).toBe(true)
+    expect(tripAcceptsTracking({ status: 'RESTING', endDate }, new Date(endDate.getTime() + TRIP_OPEN_AFTER_END_MS + 1))).toBe(false)
   })
 })
