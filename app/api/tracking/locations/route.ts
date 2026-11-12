@@ -5,6 +5,7 @@ import { ApiError } from '@/lib/api/errors'
 import { withApiHandler } from '@/lib/api/handler'
 import { requireTrackingToken } from '@/lib/api/tracking-token'
 import { planPingBatch, tripAcceptsTracking } from '@/lib/location-batch'
+import { startPendingTripOnLocation } from '@/lib/api/trip-lifecycle'
 
 const bodySchema = z.object({
   points: z
@@ -49,6 +50,10 @@ export const POST = withApiHandler(async (request) => {
     prisma.locationPing.createMany({ data: pings.map((ping) => ({ tripId, ...ping })) }),
     prisma.trackingToken.update({ where: { id: token.id }, data: { lastUsedAt: now } }),
   ])
+  // Like the single-ping endpoint: the coordinator's location during the trip's dates starts a
+  // trip still "Pendiente". The newest stored fix decides, since a queued batch can span midnight.
+  const newest = pings.at(-1)
+  if (newest) await startPendingTripOnLocation(tripId, newest.createdAt)
 
   return NextResponse.json({ received: parsed.data.points.length, stored: pings.length }, { status: 201 })
 })
