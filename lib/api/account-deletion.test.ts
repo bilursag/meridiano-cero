@@ -9,6 +9,8 @@ const tx = {
   tripMembership: { deleteMany: vi.fn() },
   redeemAttempt: { deleteMany: vi.fn() },
   adminUser: { deleteMany: vi.fn() },
+  pushDevice: { deleteMany: vi.fn() },
+  trackingToken: { deleteMany: vi.fn() },
 }
 let committed = false
 vi.mock('@/lib/db', () => ({
@@ -36,12 +38,14 @@ beforeEach(() => {
 })
 
 describe('deleteAccount', () => {
-  it("deletes the person's memberships, redeem attempts and admin access, then the Clerk user", async () => {
+  it("deletes the person's memberships, redeem attempts, admin access, push devices and tracking tokens, then the Clerk user", async () => {
     await deleteAccount('user_1')
 
     expect(tx.tripMembership.deleteMany).toHaveBeenCalledWith({ where: { clerkUserId: 'user_1' } })
     expect(tx.redeemAttempt.deleteMany).toHaveBeenCalledWith({ where: { clerkUserId: 'user_1' } })
     expect(tx.adminUser.deleteMany).toHaveBeenCalledWith({ where: { clerkUserId: 'user_1' } })
+    expect(tx.pushDevice.deleteMany).toHaveBeenCalledWith({ where: { clerkUserId: 'user_1' } })
+    expect(tx.trackingToken.deleteMany).toHaveBeenCalledWith({ where: { clerkUserId: 'user_1' } })
     expect(deleteUser).toHaveBeenCalledWith('user_1')
     expect(committed).toBe(true)
   })
