@@ -4,6 +4,7 @@ import { auth } from '@clerk/nextjs/server'
 import { Role } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { ApiError } from '@/lib/api/errors'
+import { accessCodeCandidates } from '@/lib/generate-code'
 import { withApiHandler } from '@/lib/api/handler'
 import { notifyInBackground, notifyMonitorJoined } from '@/lib/notifications'
 
@@ -31,11 +32,13 @@ export const POST = withApiHandler(async (request) => {
     throw new ApiError('VALIDATION_ERROR', 'Ingresa un código.')
   }
 
-  const code = parsed.data.code.toUpperCase()
-
-  const accessCode = await prisma.accessCode.findUnique({ where: { code } })
+  let accessCode = null
+  for (const code of accessCodeCandidates(parsed.data.code)) {
+    accessCode = await prisma.accessCode.findUnique({ where: { code } })
+    if (accessCode) break
+  }
   if (!accessCode) {
-    throw new ApiError('NOT_FOUND', 'El código no es válido.')
+    throw new ApiError('NOT_FOUND', 'Código no válido. Revisa las letras con tu coordinador.')
   }
 
   // createMany + skipDuplicates instead of upsert so we know whether this is a new membership.
