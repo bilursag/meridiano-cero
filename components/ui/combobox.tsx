@@ -45,7 +45,10 @@ export function Combobox({
     !options.some((option) => option.label.toLowerCase() === trimmedQuery.toLowerCase())
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    // Modal: inside a Dialog (e.g. "Aplicar programa") the dialog's scroll lock blocked the wheel on
+    // this list, which is portaled outside it. A modal popover takes over the lock and lets its own
+    // list scroll.
+    <Popover modal open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -61,10 +64,13 @@ export function Combobox({
           <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-(--radix-popover-trigger-width) p-0">
-        <Command>
+      {/* Never taller than the room left on screen: the list shrinks and scrolls instead of the search box going off the top. */}
+      <PopoverContent
+        collisionPadding={8}
+        className="flex max-h-(--radix-popover-content-available-height) w-(--radix-popover-trigger-width) flex-col p-0">
+        <Command className="min-h-0">
           <CommandInput placeholder={placeholder} value={query} onValueChange={setQuery} />
-          <CommandList>
+          <CommandList className="min-h-0">
             <CommandEmpty>{emptyLabel}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
