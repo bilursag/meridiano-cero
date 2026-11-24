@@ -213,15 +213,8 @@ export default function MonitorPage() {
   async function handleTripStatusChange(newStatus: TripStatus) {
     if (!trip || newStatus === trip.status) return
     setUpdatingStatus(true)
-    const statusRes = await fetch(`/api/v1/trips/${tripId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: newStatus }),
-    })
-    if (statusRes.ok) {
-      const { trip: updated } = await statusRes.json()
-      setTrip(updated)
-      await fetch(`/api/v1/trips/${tripId}/announcements`, {
+    const announceStatus = () =>
+      fetch(`/api/v1/trips/${tripId}/announcements`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -231,6 +224,17 @@ export default function MonitorPage() {
           type: 'INFO',
         }),
       })
+    // A finished trip takes no more comunicados, so the closing one goes out before the status changes.
+    if (newStatus === 'FINISHED') await announceStatus()
+    const statusRes = await fetch(`/api/v1/trips/${tripId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    })
+    if (statusRes.ok) {
+      const { trip: updated } = await statusRes.json()
+      setTrip(updated)
+      if (newStatus !== 'FINISHED') await announceStatus()
     }
     setUpdatingStatus(false)
   }
@@ -456,7 +460,11 @@ export default function MonitorPage() {
                   <CardTitle className="text-sm">Publicar comunicado</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {templates.length ? (
+                  {trip?.status === 'FINISHED' ? (
+                    <p className="text-xs text-muted-foreground">
+                      La gira ya terminó: no se pueden publicar más comunicados.
+                    </p>
+                  ) : templates.length ? (
                     <div className="flex max-h-64 flex-col gap-2 overflow-y-auto">
                       {templates.map((t) => (
                         <button
@@ -480,7 +488,11 @@ export default function MonitorPage() {
                       algunos en Mensajes.
                     </p>
                   )}
-                  <Button onClick={sendAnnouncement} disabled={!selectedTemplateId || sending} className="w-full">
+                  <Button
+                    onClick={sendAnnouncement}
+                    disabled={!selectedTemplateId || sending || trip?.status === 'FINISHED'}
+                    className="w-full"
+                  >
                     <Send size={14} /> {sending ? 'Publicando…' : 'Publicar'}
                   </Button>
                   {sent.slice(0, 2).map((m, i) => (
