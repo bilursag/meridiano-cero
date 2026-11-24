@@ -1,8 +1,9 @@
 import { PrismaClient } from '@prisma/client'
 import { tripDayToday } from '@/lib/dates'
+import { withConnectTimeout } from '@/lib/db-url'
 
 function createPrismaClient() {
-  return new PrismaClient().$extends({
+  return new PrismaClient({ datasourceUrl: withConnectTimeout(process.env.DATABASE_URL) }).$extends({
     result: {
       trip: {
         // The stored column was never advanced after a trip was created, so every reader (panel,
