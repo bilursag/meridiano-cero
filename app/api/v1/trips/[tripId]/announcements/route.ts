@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { AnnouncementType, Role } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { ApiError } from '@/lib/api/errors'
+import { requireTripOpenForAnnouncements } from '@/lib/api/announcements'
 import { requireTripAccess, requireTripWrite } from '@/lib/api/require-role'
 import { withApiHandler } from '@/lib/api/handler'
 import { notifyAnnouncement, notifyInBackground } from '@/lib/notifications'
@@ -33,6 +34,7 @@ export const GET = withApiHandler<{ tripId: string }>(async (_request, { params 
 export const POST = withApiHandler<{ tripId: string }>(async (request, { params }) => {
   const { tripId } = await params
   const { role, clerkUserId } = await requireTripWrite(tripId, [Role.MONITOR])
+  await requireTripOpenForAnnouncements(tripId)
 
   const contentType = request.headers.get('content-type') ?? ''
   let data: z.infer<typeof bodySchema>
