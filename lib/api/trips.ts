@@ -3,6 +3,7 @@ import { differenceInCalendarDays } from 'date-fns'
 import { prisma } from '@/lib/db'
 import { ApiError } from '@/lib/api/errors'
 import { applyProgramToTrip } from '@/lib/api/programs'
+import { normalizeAccessCode } from '@/lib/generate-code'
 
 export type TripCreateInput = {
   name: string
@@ -58,9 +59,9 @@ export async function createTrip(input: TripCreateInput) {
       programId,
       accessCodes: {
         create: [
-          { code: parentCode.toUpperCase(), role: Role.PARENT },
-          { code: monitorCode.toUpperCase(), role: Role.MONITOR },
-          { code: studentCode.toUpperCase(), role: Role.STUDENT },
+          { code: normalizeAccessCode(parentCode), role: Role.PARENT },
+          { code: normalizeAccessCode(monitorCode), role: Role.MONITOR },
+          { code: normalizeAccessCode(studentCode), role: Role.STUDENT },
         ],
       },
       ...(legs && legs.length > 0
