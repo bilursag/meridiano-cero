@@ -327,6 +327,8 @@ export default function MonitorPage() {
   // The activity the monitor should be acting on right now: the first
   // itinerary item (already ordered by the API) that isn't done yet.
   const currentActivity = items.find((item) => item.status !== 'COMPLETED') ?? null
+  // A finished trip's activities and comunicados are closed; the platform refuses them too.
+  const tripFinished = trip?.status === 'FINISHED'
 
   return (
     <div className="flex flex-1 flex-col">
@@ -424,7 +426,7 @@ export default function MonitorPage() {
                               key={option.value}
                               variant="outline"
                               size="sm"
-                              disabled={applyingTransition !== null}
+                              disabled={applyingTransition !== null || tripFinished}
                               onClick={() => handleTransitionClick(currentActivity, option.value)}
                               className={
                                 isTerminada
@@ -460,7 +462,7 @@ export default function MonitorPage() {
                   <CardTitle className="text-sm">Publicar comunicado</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {trip?.status === 'FINISHED' ? (
+                  {tripFinished ? (
                     <p className="text-xs text-muted-foreground">
                       La gira ya terminó: no se pueden publicar más comunicados.
                     </p>
@@ -490,7 +492,7 @@ export default function MonitorPage() {
                   )}
                   <Button
                     onClick={sendAnnouncement}
-                    disabled={!selectedTemplateId || sending || trip?.status === 'FINISHED'}
+                    disabled={!selectedTemplateId || sending || tripFinished}
                     className="w-full"
                   >
                     <Send size={14} /> {sending ? 'Publicando…' : 'Publicar'}
@@ -550,7 +552,7 @@ export default function MonitorPage() {
                                         key={option.value}
                                         variant="outline"
                                         size="sm"
-                                        disabled={applyingTransition !== null}
+                                        disabled={applyingTransition !== null || tripFinished}
                                         onClick={() => handleTransitionClick(item, option.value)}
                                         className={
                                           isTerminada
@@ -611,7 +613,7 @@ export default function MonitorPage() {
                                       variant="outline"
                                       size="sm"
                                       onClick={() => sendRequirements(item)}
-                                      disabled={sendingRequirementsId === item.id}
+                                      disabled={sendingRequirementsId === item.id || tripFinished}
                                     >
                                       <Send size={14} />
                                       {sendingRequirementsId === item.id ? 'Enviando…' : 'Enviar requisitos'}

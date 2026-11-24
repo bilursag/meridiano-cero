@@ -7,6 +7,7 @@ import { ApiError } from '@/lib/api/errors'
 import { requireTripWrite } from '@/lib/api/require-role'
 import { findItineraryItem } from '@/lib/api/itinerary'
 import { withApiHandler } from '@/lib/api/handler'
+import { FINISHED_TRIP_STEP_MESSAGE } from '@/lib/api/announcements'
 import { tripStatusAfterActivity } from '@/lib/trip-status'
 import { notifyInBackground } from '@/lib/notifications'
 import { pushActivity } from '@/lib/push-triggers'
@@ -28,7 +29,7 @@ const bodySchema = z.object({
 
 export const PATCH = withApiHandler<{ tripId: string; itemId: string }>(async (request, { params }) => {
   const { tripId, itemId } = await params
-  const { clerkUserId } = await requireTripWrite(tripId, [Role.MONITOR])
+  const { role, clerkUserId } = await requireTripWrite(tripId, [Role.MONITOR])
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
@@ -43,6 +44,11 @@ export const PATCH = withApiHandler<{ tripId: string; itemId: string }>(async (r
     itemData.status || requestedTripStatus
       ? await prisma.trip.findUnique({ where: { id: tripId }, select: { status: true } })
       : null
+  // A finished trip's activities stay as they ended: the coordinator's steps (and their "Deshacer")
+  // are refused. The central team can still correct a status from the panel.
+  if (trip?.status === 'FINISHED' && role !== 'ADMIN') {
+    throw new ApiError('VALIDATION_ERROR', FINISHED_TRIP_STEP_MESSAGE)
+  }
   let tripStatus: TripStatus | null = null
   if (trip && requestedTripStatus) {
     tripStatus = trip.status === 'FINISHED' || requestedTripStatus === trip.status ? null : requestedTripStatus
