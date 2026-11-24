@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { Role } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { ApiError } from '@/lib/api/errors'
+import { requireTripOpenForAnnouncements } from '@/lib/api/announcements'
 import { requireTripWrite } from '@/lib/api/require-role'
 import { findItineraryItem } from '@/lib/api/itinerary'
 import { withApiHandler } from '@/lib/api/handler'
@@ -18,6 +19,7 @@ const bodySchema = z.object({ authorName: z.string().trim().min(1) })
 export const POST = withApiHandler<{ tripId: string; itemId: string }>(async (request, { params }) => {
   const { tripId, itemId } = await params
   const { role, clerkUserId } = await requireTripWrite(tripId, [Role.MONITOR])
+  await requireTripOpenForAnnouncements(tripId)
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Falta el autor del comunicado.')

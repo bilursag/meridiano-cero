@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db'
 import { ApiError } from '@/lib/api/errors'
 
 export const FINISHED_TRIP_ANNOUNCEMENT_MESSAGE = 'La gira ya terminó: no se pueden publicar comunicados.'
+export const FINISHED_TRIP_STEP_MESSAGE = 'La gira ya terminó: sus actividades ya no se pueden avanzar.'
 
 /**
  * A finished trip takes no more comunicados, from anyone: the families already got the last word
