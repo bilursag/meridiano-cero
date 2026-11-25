@@ -46,7 +46,7 @@ export const POST = withApiHandler<{ tripId: string }>(async (request, { params 
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan la persona o el rol.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan la persona o el rol.', parsed.error)
 
   const membership = await prisma.tripMembership.upsert({
     where: {

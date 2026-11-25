@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Prisma } from '@prisma/client'
+import { z } from 'zod'
 import { ApiError, apiErrorResponse, handleApiError } from './errors'
 
 function prismaUniqueError(target: string[] | string) {
@@ -23,6 +24,26 @@ describe('ApiError / apiErrorResponse', () => {
     expect(res.status).toBe(status)
     const body = await res.json()
     expect(body).toEqual({ error: { code, message: 'boom' } })
+  })
+})
+
+describe('ApiError with a zod error', () => {
+  it('sends back which fields failed, at most five', async () => {
+    const schema = z.object({ points: z.array(z.object({ recordedAt: z.number().int() })) })
+    const parsed = schema.safeParse({ points: Array.from({ length: 8 }, () => ({ recordedAt: 1.5 })) })
+    if (parsed.success) throw new Error('expected a failure')
+
+    const body = await apiErrorResponse(new ApiError('VALIDATION_ERROR', 'No válido.', parsed.error)).json()
+
+    expect(body.error.message).toBe('No válido.')
+    expect(body.error.issues).toHaveLength(5)
+    expect(body.error.issues[0]).toEqual({ path: 'points.0.recordedAt', message: expect.stringContaining('int') })
+  })
+
+  it('names the whole body when it is not an object at all', async () => {
+    const parsed = z.object({ code: z.string() }).safeParse(null)
+    if (parsed.success) throw new Error('expected a failure')
+    expect(new ApiError('VALIDATION_ERROR', 'x', parsed.error).issues?.[0].path).toBe('(cuerpo)')
   })
 })
 

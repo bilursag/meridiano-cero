@@ -41,7 +41,7 @@ export const POST = withApiHandler(async (request) => {
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Ingresa un nombre para el programa.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Ingresa un nombre para el programa.', parsed.error)
 
   const program = await prisma.program.create({ data: parsed.data })
 

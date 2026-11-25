@@ -20,7 +20,7 @@ export const POST = withApiHandler(async (request) => {
 
   const json = await request.json().catch(() => null)
   const parsed = pingBatchSchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Las ubicaciones enviadas no son válidas.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Las ubicaciones enviadas no son válidas.', parsed.error)
 
   const tripId = token.trip.id
   const last = await prisma.locationPing.findFirst({

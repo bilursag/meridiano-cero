@@ -17,7 +17,7 @@ export const POST = withApiHandler<{ tripId: string }>(async (request, { params 
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Ingresa un correo válido.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Ingresa un correo válido.', parsed.error)
 
   const client = await clerkClient()
   const invitation = await client.invitations.createInvitation({

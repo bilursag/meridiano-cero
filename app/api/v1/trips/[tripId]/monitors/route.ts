@@ -24,7 +24,7 @@ export const POST = withApiHandler<{ tripId: string }>(async (request, { params 
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Ingresa nombre, apellido y un correo válido.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Ingresa nombre, apellido y un correo válido.', parsed.error)
 
   const client = await clerkClient()
   const existing = (await client.users.getUserList({ emailAddress: [parsed.data.emailAddress] })).data[0]

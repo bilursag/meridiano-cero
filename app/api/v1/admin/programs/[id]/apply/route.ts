@@ -14,7 +14,7 @@ export const POST = withApiHandler<{ id: string }>(async (request, { params }) =
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Falta el grupo.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Falta el grupo.', parsed.error)
 
   const trip = await prisma.trip.findUnique({ where: { id: parsed.data.tripId } })
   if (!trip) throw new ApiError('NOT_FOUND', 'No se encontró el grupo.')

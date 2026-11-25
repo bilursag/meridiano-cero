@@ -33,7 +33,7 @@ export const POST = withApiHandler<{ tripId: string }>(async (request, { params 
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan la latitud, la longitud o la precisión.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan la latitud, la longitud o la precisión.', parsed.error)
 
   const lastPing = await prisma.locationPing.findFirst({
     where: { tripId },

@@ -48,7 +48,7 @@ export const POST = withApiHandler(async (request) => {
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan filas para importar o no son válidas.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan filas para importar o no son válidas.', parsed.error)
 
   const results: { key: string; success: boolean; tripId?: string; error?: string }[] = []
 

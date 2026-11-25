@@ -33,7 +33,7 @@ export const PATCH = withApiHandler<{ tripId: string; itemId: string }>(async (r
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Los cambios de la actividad no son válidos.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Los cambios de la actividad no son válidos.', parsed.error)
   if (Object.keys(parsed.data).length === 0) throw new ApiError('VALIDATION_ERROR', 'No hay cambios para guardar.')
 
   const previous = await findItineraryItem(tripId, itemId)

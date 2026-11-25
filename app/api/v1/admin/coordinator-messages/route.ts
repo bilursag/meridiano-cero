@@ -25,7 +25,7 @@ export const POST = withApiHandler(async (request) => {
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
   if (!parsed.success) {
-    throw new ApiError('VALIDATION_ERROR', `Escribe un título (hasta 60 caracteres) y un mensaje (hasta ${COORDINATOR_MESSAGE_MAX}).`)
+    throw new ApiError('VALIDATION_ERROR', `Escribe un título (hasta 60 caracteres) y un mensaje (hasta ${COORDINATOR_MESSAGE_MAX}).`, parsed.error)
   }
 
   const user = await currentUser()

@@ -29,7 +29,7 @@ export const POST = withApiHandler(async (request) => {
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
   if (!parsed.success) {
-    throw new ApiError('VALIDATION_ERROR', 'Ingresa un código.')
+    throw new ApiError('VALIDATION_ERROR', 'Ingresa un código.', parsed.error)
   }
 
   let accessCode = null

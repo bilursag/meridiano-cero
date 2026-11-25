@@ -25,7 +25,7 @@ export const POST = withApiHandler<{ id: string }>(async (request, { params }) =
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan datos de la actividad o no son válidos.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan datos de la actividad o no son válidos.', parsed.error)
 
   let order = parsed.data.order
   if (order === undefined) {
@@ -48,7 +48,7 @@ export const PATCH = withApiHandler<{ id: string }>(async (request, { params }) 
 
   const json = await request.json().catch(() => null)
   const parsed = dayReorderSchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'El nuevo orden de las actividades no es válido.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'El nuevo orden de las actividades no es válido.', parsed.error)
   const changes = parsed.data.items
 
   const ids = changes.map((change) => change.id)
