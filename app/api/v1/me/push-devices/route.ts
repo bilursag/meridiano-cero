@@ -16,7 +16,7 @@ const removeSchema = z.object({ token: tokenSchema })
 export const POST = withApiHandler(async (request) => {
   const { clerkUserId } = await requireAuthenticated()
   const parsed = registerSchema.safeParse(await request.json().catch(() => null))
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'El identificador de notificaciones no es válido.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'El identificador de notificaciones no es válido.', parsed.error)
 
   const { token, platform } = parsed.data
   await prisma.pushDevice.upsert({
@@ -31,7 +31,7 @@ export const POST = withApiHandler(async (request) => {
 export const DELETE = withApiHandler(async (request) => {
   const { clerkUserId } = await requireAuthenticated()
   const parsed = removeSchema.safeParse(await request.json().catch(() => null))
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'El identificador de notificaciones no es válido.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'El identificador de notificaciones no es válido.', parsed.error)
 
   await prisma.pushDevice.deleteMany({ where: { token: parsed.data.token, clerkUserId } })
   return NextResponse.json({ ok: true })

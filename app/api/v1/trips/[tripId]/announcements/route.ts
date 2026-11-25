@@ -48,7 +48,7 @@ export const POST = withApiHandler<{ tripId: string }>(async (request, { params 
       authorName: formData.get('authorName'),
       type: formData.get('type') || undefined,
     })
-    if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan el título, el mensaje o el autor.')
+    if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan el título, el mensaje o el autor.', parsed.error)
     data = parsed.data
 
     const maybeFile = formData.get('file')
@@ -60,7 +60,7 @@ export const POST = withApiHandler<{ tripId: string }>(async (request, { params 
   } else {
     const json = await request.json().catch(() => null)
     const parsed = bodySchema.safeParse(json)
-    if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan el título, el mensaje o el autor.')
+    if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan el título, el mensaje o el autor.', parsed.error)
     data = parsed.data
   }
 

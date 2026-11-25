@@ -28,7 +28,7 @@ export const POST = withApiHandler(async (request) => {
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan el título o la descripción.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan el título o la descripción.', parsed.error)
 
   const activityTemplate = await prisma.activityTemplate.create({ data: parsed.data })
 

@@ -29,7 +29,7 @@ export const PATCH = withApiHandler<{ id: string }>(async (request, { params }) 
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Los cambios del programa no son válidos.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Los cambios del programa no son válidos.', parsed.error)
   if (Object.keys(parsed.data).length === 0) throw new ApiError('VALIDATION_ERROR', 'No hay cambios para guardar.')
 
   const existing = await prisma.program.findUnique({ where: { id } })

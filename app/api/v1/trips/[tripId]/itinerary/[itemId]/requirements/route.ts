@@ -22,7 +22,7 @@ export const POST = withApiHandler<{ tripId: string; itemId: string }>(async (re
   await requireTripOpenForAnnouncements(tripId)
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null))
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Falta el autor del comunicado.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Falta el autor del comunicado.', parsed.error)
 
   const item = await findItineraryItem(tripId, itemId)
   if (!item.requirementsMessage) throw new ApiError('VALIDATION_ERROR', 'Esta actividad no tiene requisitos.')

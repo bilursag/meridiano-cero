@@ -84,7 +84,7 @@ export const POST = withApiHandler(async (request) => {
 
   const json = await request.json().catch(() => null)
   const parsed = bodySchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan datos del grupo o no son válidos.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Faltan datos del grupo o no son válidos.', parsed.error)
 
   const trip = await createTrip({
     ...parsed.data,

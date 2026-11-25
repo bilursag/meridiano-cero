@@ -61,7 +61,7 @@ export const PATCH = withApiHandler<{ tripId: string }>(async (request, { params
 
   const json = await request.json().catch(() => null)
   const parsed = patchSchema.safeParse(json)
-  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Los cambios del grupo no son válidos.')
+  if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Los cambios del grupo no son válidos.', parsed.error)
 
   const { status, startDate, endDate, school: schoolName, programId, legs, ...detailFields } = parsed.data
   const hasDetailFields =
