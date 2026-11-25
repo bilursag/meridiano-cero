@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import { TRIP_OPEN_AFTER_END_MS } from '@/lib/trip-status'
 
 /** Same spacing the single-ping endpoint enforces: the map and the alerts never need more. */
@@ -5,6 +6,23 @@ export const MIN_PING_GAP_MS = 5_000
 
 /** Fixes older than this are dropped: a phone that was off for days has nothing useful to add. */
 export const MAX_PING_AGE_MS = 24 * 60 * 60 * 1000
+
+/** The body the phone's background tracking posts to /api/tracking/locations. */
+export const pingBatchSchema = z.object({
+  points: z
+    .array(
+      z.object({
+        lat: z.number().min(-90).max(90),
+        lng: z.number().min(-180).max(180),
+        accuracy: z.number().nonnegative().transform(Math.round),
+        // Epoch milliseconds, as the phone's location API reports the fix. iOS reports it with a
+        // fractional part (seconds × 1000) and Android as a whole number, so it is rounded here.
+        recordedAt: z.number().positive().transform(Math.round),
+      })
+    )
+    .min(1)
+    .max(500),
+})
 
 export type BatchPoint = { lat: number; lng: number; accuracy: number; recordedAt: number }
 export type PlannedPing = { lat: number; lng: number; accuracy: number; createdAt: Date }

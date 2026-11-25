@@ -1,10 +1,25 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_PING_AGE_MS, planPingBatch, tripAcceptsTracking } from './location-batch'
+import { MAX_PING_AGE_MS, pingBatchSchema, planPingBatch, tripAcceptsTracking } from './location-batch'
 import { TRIP_OPEN_AFTER_END_MS } from './trip-status'
 
 const now = new Date('2026-11-20T15:00:00Z')
 const at = (secondsAgo: number) => now.getTime() - secondsAgo * 1000
 const point = (secondsAgo: number) => ({ lat: -41.3, lng: -72.9, accuracy: 10, recordedAt: at(secondsAgo) })
+
+describe('pingBatchSchema', () => {
+  it('takes the fractional timestamps iOS reports and rounds them, like whole Android ones', () => {
+    const ios = { lat: -41.3, lng: -72.9, accuracy: 65.2, recordedAt: 1764072000.123456 * 1000 }
+    const android = { ...ios, accuracy: 10, recordedAt: 1764072000123 }
+    const parsed = pingBatchSchema.parse({ points: [ios, android] })
+    expect(parsed.points.map((p) => p.recordedAt)).toEqual([1764072000123, 1764072000123])
+    expect(parsed.points[0].accuracy).toBe(65)
+  })
+
+  it('still refuses a missing or negative timestamp', () => {
+    expect(pingBatchSchema.safeParse({ points: [{ lat: 0, lng: 0, accuracy: 0, recordedAt: -1 }] }).success).toBe(false)
+    expect(pingBatchSchema.safeParse({ points: [{ lat: 0, lng: 0, accuracy: 0 }] }).success).toBe(false)
+  })
+})
 
 describe('planPingBatch', () => {
   it('keeps points oldest first, at least 5 s apart', () => {
