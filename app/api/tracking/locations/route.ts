@@ -1,26 +1,10 @@
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
 import { prisma } from '@/lib/db'
 import { ApiError } from '@/lib/api/errors'
 import { withApiHandler } from '@/lib/api/handler'
 import { requireTrackingToken } from '@/lib/api/tracking-token'
-import { planPingBatch, tripAcceptsTracking } from '@/lib/location-batch'
+import { pingBatchSchema, planPingBatch, tripAcceptsTracking } from '@/lib/location-batch'
 import { startPendingTripOnLocation } from '@/lib/api/trip-lifecycle'
-
-const bodySchema = z.object({
-  points: z
-    .array(
-      z.object({
-        lat: z.number().min(-90).max(90),
-        lng: z.number().min(-180).max(180),
-        accuracy: z.number().nonnegative().transform(Math.round),
-        // Epoch milliseconds, as the phone's location API reports the fix.
-        recordedAt: z.number().int().positive(),
-      })
-    )
-    .min(1)
-    .max(500),
-})
 
 /**
  * Locations from the coordinator's background tracking, authenticated with the trip's tracking
@@ -35,7 +19,7 @@ export const POST = withApiHandler(async (request) => {
   }
 
   const json = await request.json().catch(() => null)
-  const parsed = bodySchema.safeParse(json)
+  const parsed = pingBatchSchema.safeParse(json)
   if (!parsed.success) throw new ApiError('VALIDATION_ERROR', 'Las ubicaciones enviadas no son válidas.')
 
   const tripId = token.trip.id
